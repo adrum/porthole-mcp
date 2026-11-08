@@ -26,6 +26,13 @@ final class Harness {
             log("disabled by PORTHOLE_MCP_DISABLE")
             return
         }
+        // The second guard after #if DEBUG: a configuration that defines DEBUG
+        // in a build signed for distribution (a "Staging" or "Beta" scheme)
+        // still never connects.
+        if let reason = DistributionCheck.refusal() {
+            log("not started: \(reason)")
+            return
+        }
         let path: String
         do {
             path = try SocketDirectory.hubSocketPath(options: options, env: env)
@@ -243,6 +250,13 @@ final class HubClient {
                 log("connected to the porthole-mcp hub as \(target)")
                 reportedWaiting = false
                 delay = 0.25
+                // While an agent may be driving the app, keep macOS from
+                // napping it: a covered, backgrounded app would otherwise
+                // answer and redraw late, and wait_for would crawl.
+                let activity = ProcessInfo.processInfo.beginActivity(
+                    options: .userInitiatedAllowingIdleSystemSleep,
+                    reason: "Porthole: connected to an agent's hub")
+                defer { ProcessInfo.processInfo.endActivity(activity) }
                 let why = serve(c)
                 lock.lock()
                 connection = nil

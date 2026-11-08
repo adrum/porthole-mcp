@@ -57,13 +57,41 @@ final class FormController: NSObject, NSTextFieldDelegate, NSTableViewDataSource
         scroll.translatesAutoresizingMaskIntoConstraints = false
         scroll.heightAnchor.constraint(equalToConstant: 200).isActive = true
 
+        // A sidebar-material panel, drawn with vibrancy: a red stripe along
+        // its top and a label. The e2e tests check screenshots include it.
+        let vibrant = NSVisualEffectView()
+        vibrant.material = .sidebar
+        vibrant.blendingMode = .behindWindow
+        vibrant.state = .active
+        vibrant.setAccessibilityElement(true)
+        vibrant.setAccessibilityRole(.group)
+        vibrant.setAccessibilityIdentifier("vibrant")
+        vibrant.translatesAutoresizingMaskIntoConstraints = false
+        vibrant.heightAnchor.constraint(equalToConstant: 56).isActive = true
+        let stripe = NSView()
+        stripe.wantsLayer = true
+        stripe.layer?.backgroundColor = NSColor.systemRed.cgColor
+        stripe.translatesAutoresizingMaskIntoConstraints = false
+        let vibrantLabel = NSTextField(labelWithString: "Vibrant sidebar")
+        vibrantLabel.translatesAutoresizingMaskIntoConstraints = false
+        vibrant.addSubview(stripe)
+        vibrant.addSubview(vibrantLabel)
+        NSLayoutConstraint.activate([
+            stripe.topAnchor.constraint(equalTo: vibrant.topAnchor),
+            stripe.leadingAnchor.constraint(equalTo: vibrant.leadingAnchor),
+            stripe.trailingAnchor.constraint(equalTo: vibrant.trailingAnchor),
+            stripe.heightAnchor.constraint(equalToConstant: 12),
+            vibrantLabel.leadingAnchor.constraint(equalTo: vibrant.leadingAnchor, constant: 10),
+            vibrantLabel.bottomAnchor.constraint(equalTo: vibrant.bottomAnchor, constant: -10),
+        ])
+
         let buttons = NSStackView(views: [save, sheetButton, prefsButton, disabled])
-        let stack = NSStackView(views: [email, password, subscribe, volume, buttons, status, typed, scroll])
+        let stack = NSStackView(views: [email, password, subscribe, volume, buttons, status, typed, scroll, vibrant])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        for v in [email, password, scroll] {
+        for v in [email, password, scroll, vibrant] {
             v.translatesAutoresizingMaskIntoConstraints = false
             v.widthAnchor.constraint(equalToConstant: 380).isActive = true
         }

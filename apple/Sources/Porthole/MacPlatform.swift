@@ -74,37 +74,66 @@ final class MacPlatform: Platform {
         return app.orderedWindows.filter { $0.isVisible && $0.contentView != nil && $0.frame.width > 1 && $0.frame.height > 1 }
     }
 
+    /// Windows an agent can reach: the visible ones, then the minimized ones.
+    /// A hidden app (⌘H) is unhidden first, without activating it, since none
+    /// of its windows count as visible while it's hidden.
+    private func drivableWindows() -> [NSWindow] {
+        guard let app = NSApp else { return [] }
+        if app.isHidden {
+            app.unhideWithoutActivation()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        let visible = visibleWindows()
+        let minimized = app.windows.filter { $0.isMiniaturized && $0.contentView != nil && !visible.contains($0) }
+        return visible + minimized
+    }
+
+    /// A minimized window can't be drawn or take input: restore it, and wait
+    /// out the Dock animation.
+    private func restoreIfMinimized(_ w: NSWindow) {
+        guard w.isMiniaturized else { return }
+        w.deminiaturize(nil)
+        let deadline = Date().addingTimeInterval(1.5)
+        while (w.isMiniaturized || !w.isVisible) && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
+    }
+
     private func windowId(_ w: NSWindow) -> String {
         "w\(w.windowNumber)"
     }
 
     func windows() -> [[String: Any]] {
         let screenTop = NSScreen.screens.first?.frame.maxY ?? 0
-        return visibleWindows().map { w in
+        return drivableWindows().map { w in
             let f = w.frame
             return [
                 "id": windowId(w),
                 "title": w.title,
                 "key": w.isKeyWindow,
+                "minimized": w.isMiniaturized,
                 "frame": ["x": f.minX, "y": screenTop - f.maxY, "w": f.width, "h": f.height],
             ]
         }
     }
 
     private func resolveWindow(_ id: String?) throws -> NSWindow {
-        let all = visibleWindows()
+        let all = drivableWindows()
         if let id {
             guard let w = all.first(where: { windowId($0) == id }) else {
                 let ids = all.map { "\(windowId($0)) \"\($0.title)\"" }.joined(separator: ", ")
-                throw HarnessError.notFound("no visible window \"\(id)\"; windows: \(ids.isEmpty ? "none" : ids)")
+                throw HarnessError.notFound("no window \"\(id)\"; windows: \(ids.isEmpty ? "none" : ids)")
             }
+            restoreIfMinimized(w)
             return w
         }
         if let key = NSApp?.keyWindow, key.isVisible, key.contentView != nil { return key }
-        // No key window (the app is in the background): the frontmost one.
+        // No key window (the app is in the background): the frontmost one,
+        // or a minimized one when nothing else is open.
         guard let first = all.first else {
-            throw HarnessError.notFound("the app has no visible windows")
+            throw HarnessError.notFound("the app has no open windows")
         }
+        restoreIfMinimized(first)
         return first.attachedSheet ?? first
     }
 
@@ -397,7 +426,47 @@ final class MacPlatform: Platform {
         ctx.setFillColor(background)
         ctx.fill(all)
         ctx.draw(drawn, in: all)
+        drawVibrancy(content, in: ctx, scale: scale, background: background)
         return ctx.makeImage() ?? drawn
+    }
+
+    /// cacheDisplay leaves vibrancy out: an NSVisualEffectView's material,
+    /// and the vibrant text and icons drawn over it, come out blank, so a
+    /// source-list sidebar is an empty rectangle. Redraw each effect view
+    /// from its layer tree, which holds that text and those icons, over the
+    /// window's background in place of the material behind them.
+    private func drawVibrancy(_ content: NSView, in ctx: CGContext, scale: CGFloat, background: CGColor) {
+        var effects: [NSVisualEffectView] = []
+        func collect(_ v: NSView) {
+            if v.isHidden || v.alphaValue < 0.01 { return }
+            if let e = v as? NSVisualEffectView {
+                effects.append(e)
+                return
+            }
+            for s in v.subviews { collect(s) }
+        }
+        collect(content)
+        for e in effects {
+            guard let layer = e.layer else { continue }
+            // The effect view's rect in the image, whose origin is at the bottom left.
+            let r = e.convert(e.bounds, to: content)
+            let y = content.isFlipped ? content.bounds.height - r.maxY : r.minY
+            let px = CGRect(x: r.minX * scale, y: y * scale, width: r.width * scale, height: r.height * scale)
+            ctx.saveGState()
+            ctx.clip(to: px)
+            ctx.setFillColor(background)
+            ctx.fill(px)
+            ctx.translateBy(x: px.minX, y: px.minY)
+            ctx.scaleBy(x: scale, y: scale)
+            // A layer draws with its origin at the bottom left unless it's
+            // flipped; match the y-up image.
+            if layer.isGeometryFlipped {
+                ctx.translateBy(x: 0, y: r.height)
+                ctx.scaleBy(x: 1, y: -1)
+            }
+            layer.render(in: ctx)
+            ctx.restoreGState()
+        }
     }
 
     // MARK: actions
