@@ -170,6 +170,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         Porthole.start()
         Porthole.registerHook("reset") { [form] in form.reset() }
+        // For the e2e tests: an agent must reach a minimized window and a
+        // hidden app.
+        Porthole.registerHook("minimize") { [form] in form.window.miniaturize(nil) }
+        Porthole.registerHook("hide") { NSApp.hide(nil) }
         #endif
         let menu = NSMenu()
         let appItem = NSMenuItem()
