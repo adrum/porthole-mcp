@@ -89,9 +89,10 @@ final class MacPlatform: Platform {
         }
         // A window on its way into the Dock, or out of a hidden app, is
         // neither visible nor minimized until the animation ends. Give it
-        // time before deciding the app has no windows.
+        // time before deciding the app has no windows (up to 3 seconds: on a
+        // slow machine the Dock animation takes a while).
         var windows = reachable()
-        let deadline = Date().addingTimeInterval(1.5)
+        let deadline = Date().addingTimeInterval(3)
         while windows.isEmpty && Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
             windows = reachable()
