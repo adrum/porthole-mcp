@@ -56,6 +56,13 @@ jobs:
       - name: Publish to npm
         working-directory: expo
         run: |
+          # Skip a version npm already has: the first release was published by
+          # hand (npm needs a package to exist before it trusts a workflow),
+          # and a rerun of this job shouldn't fail on its own earlier publish.
+          if npm view "porthole-mcp@$version" version >/dev/null 2>&1; then
+            echo "porthole-mcp $version is already on npm; skipping the publish"
+            exit 0
+          fi
           # A prerelease (0.2.0-beta.1) goes out under the next tag, so
           # `npm install porthole-mcp` keeps getting the latest stable version.
           case "$version" in
