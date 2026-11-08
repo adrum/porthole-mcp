@@ -81,11 +81,22 @@ final class MacPlatform: Platform {
         guard let app = NSApp else { return [] }
         if app.isHidden {
             app.unhideWithoutActivation()
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
-        let visible = visibleWindows()
-        let minimized = app.windows.filter { $0.isMiniaturized && $0.contentView != nil && !visible.contains($0) }
-        return visible + minimized
+        func reachable() -> [NSWindow] {
+            let visible = visibleWindows()
+            let minimized = app.windows.filter { $0.isMiniaturized && $0.contentView != nil && !visible.contains($0) }
+            return visible + minimized
+        }
+        // A window on its way into the Dock, or out of a hidden app, is
+        // neither visible nor minimized until the animation ends. Give it
+        // time before deciding the app has no windows.
+        var windows = reachable()
+        let deadline = Date().addingTimeInterval(1.5)
+        while windows.isEmpty && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            windows = reachable()
+        }
+        return windows
     }
 
     /// A minimized window can't be drawn or take input: restore it, and wait
