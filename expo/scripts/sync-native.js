@@ -14,4 +14,4 @@ fs.copyFileSync(path.join(repo, 'LICENSE'), path.join(out, 'LICENSE'));
 // The package's test target isn't shipped.
 const pkg = path.join(out, 'Package.swift');
 fs.writeFileSync(pkg, fs.readFileSync(pkg, 'utf8').replace(/\n\s*\.testTarget\([^\n]*\n/, '\n'));
-console.log(`synced harness sources into ${path.relative(process.cwd(), out) || out}`);
+console.error(`synced harness sources into ${path.relative(process.cwd(), out) || out}`);

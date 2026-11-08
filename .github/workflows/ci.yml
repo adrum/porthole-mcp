@@ -1,0 +1,52 @@
+# Tests on every push and pull request. The release workflow runs the same
+# jobs before it publishes.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  swift:
+    name: Swift package
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test the harness
+        working-directory: apple
+        run: swift test
+
+  expo:
+    name: Expo plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
+      - name: Install
+        working-directory: expo
+        run: npm ci
+      - name: Test the plugin
+        working-directory: expo
+        run: npm test
+      - name: Check what the package ships
+        working-directory: expo
+        run: |
+          # The package must carry the Swift harness it adds to apps.
+          npm pack --dry-run --json > pack.json
+          node -e '
+            const files = require("./pack.json")[0].files.map(f => f.path);
+            for (const need of ["app.plugin.js", "plugin/index.js", "native/Package.swift", "native/Sources/Porthole/Porthole.swift", "native/LICENSE"]) {
+              if (!files.includes(need)) { console.error(`missing from the package: ${need}`); process.exit(1); }
+            }
+            if (files.some(f => f.includes("Tests/"))) { console.error("the package ships tests"); process.exit(1); }
+            console.log(`${files.length} files, harness included`);
+          '

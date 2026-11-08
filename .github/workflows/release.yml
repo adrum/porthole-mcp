@@ -1,0 +1,72 @@
+# Publish a release when a version tag is pushed (scripts/release.sh makes
+# one): test, publish porthole-mcp to npm, and create the GitHub release that
+# Swift Package Manager users see. The tag itself is the Swift package's
+# version.
+#
+# npm trusts this workflow directly (trusted publishing over OpenID Connect),
+# so there's no npm token to store, and each version gets a provenance
+# statement linking it to the commit and workflow that built it. Set it up
+# once on npmjs.com: package porthole-mcp › Settings › Trusted publishing ›
+# GitHub Actions, with this repository and the workflow file release.yml.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish
+    needs: test
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write   # create the GitHub release
+      id-token: write   # trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Trusted publishing needs npm 11.5.1 or later, which Node 24 ships.
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
+
+      - name: Check the tag matches the package version
+        working-directory: expo
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME doesn't match expo/package.json version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_ENV"
+
+      - name: Install
+        working-directory: expo
+        run: npm ci
+
+      - name: Publish to npm
+        working-directory: expo
+        run: |
+          # A prerelease (0.2.0-beta.1) goes out under the next tag, so
+          # `npm install porthole-mcp` keeps getting the latest stable version.
+          case "$version" in
+            *-*) npm publish --tag next ;;
+            *) npm publish ;;
+          esac
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --title "Porthole $version" --generate-notes $prerelease
