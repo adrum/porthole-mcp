@@ -1,6 +1,6 @@
 #!/bin/sh
 # Cut a release: set the npm package's version, commit it, and tag it. Pushing
-# the tag runs .github/workflows/release.yml, which tests, publishes to npm and
+# the tag runs .github/workflows/release.yml, which tests, stages it on npm (it goes live once you approve it with 2FA) and
 # creates the GitHub release; the tag is also the Swift package's version.
 #
 #   scripts/release.sh 0.2.0          a release
