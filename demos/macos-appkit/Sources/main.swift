@@ -174,6 +174,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // hidden app.
         Porthole.registerHook("minimize") { [form] in form.window.miniaturize(nil) }
         Porthole.registerHook("hide") { NSApp.hide(nil) }
+        Porthole.registerHook("restore") { [form] in
+            form.window.deminiaturize(nil)
+            form.window.orderFront(nil)
+        }
         // Prints whether the window is minimized, for the tests to read back
         // through the logs tool.
         Porthole.registerHook("report") { [form] in print("minimized: \(form.window.isMiniaturized)") }
