@@ -150,6 +150,11 @@ A target is space-separated terms that must all match:
 
 Examples: `#email`, `role:button "Save"`, `role:row nth:3`, `~"saved"`.
 
+Click list and sidebar rows by selector, not by `click {x, y}`: a selector
+selects the row through accessibility, which drives a SwiftUI List's
+selection, while a coordinate click is a synthetic mouse event that rows
+often ignore.
+
 When one match is nested inside another, the outer one wins (a React Native
 Pressable and its Text are one element). When several remain, uncovered ones
 are preferred; if still ambiguous, the error lists the candidates and
@@ -200,6 +205,9 @@ The demo projects are generated with XcodeGen from each demo's
 
 ## Known limitations
 
+- macOS screenshots are drawn by the app with `cacheDisplay`, which leaves
+  out vibrancy and system materials: a source-list sidebar comes out as a
+  blank area. `inspect` still shows what's there.
 - iOS screenshots use `drawHierarchy`, which can misplace iOS 26+ glass
   effects (a back button drawn out of place) and catches transitions in
   progress.
