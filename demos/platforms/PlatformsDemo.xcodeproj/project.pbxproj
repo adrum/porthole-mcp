@@ -1,0 +1,506 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		225A65464BA6CD1BDB68E455 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9AB90AB8A3CE2F327D1700 /* App.swift */; };
+		285B792A30290A1AA9E7D598 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9AB90AB8A3CE2F327D1700 /* App.swift */; };
+		6470051960D421491DE19E53 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9AB90AB8A3CE2F327D1700 /* App.swift */; };
+		74A516E6737E3AC3E320E4CF /* Porthole in Frameworks */ = {isa = PBXBuildFile; productRef = CD1BA2FBEBA45A4B948B617E /* Porthole */; };
+		85AECC0C52756204E19220C1 /* Porthole in Frameworks */ = {isa = PBXBuildFile; productRef = 9F314E19F03E6F9D3B35E965 /* Porthole */; };
+		AD66A58E87F077B15B4B3924 /* Porthole in Frameworks */ = {isa = PBXBuildFile; productRef = C3CA7D845DCBEAB0FC8DBE9D /* Porthole */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		21672D85DB53F655CEAF956B /* TVDemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TVDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		55A9AAE7EC19664D377C6354 /* VisionDemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VisionDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B9AB90AB8A3CE2F327D1700 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		A5A2BE1D0CB30655ECACAF37 /* apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = apple; path = ../../apple; sourceTree = SOURCE_ROOT; };
+		EF5C6B57F8C62737050DA958 /* WatchDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2539CE536589D4E8E933FED8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				74A516E6737E3AC3E320E4CF /* Porthole in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3A4B618945BCF4A94D798925 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD66A58E87F077B15B4B3924 /* Porthole in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		77D51A6CAA2FCD5FA910103E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85AECC0C52756204E19220C1 /* Porthole in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		335E141EFB445121EB60EF54 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				6B9AB90AB8A3CE2F327D1700 /* App.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		6FC95C543FFC0EEAEAB62EDE = {
+			isa = PBXGroup;
+			children = (
+				F2C5CC964F89DE3FE52071CE /* Packages */,
+				335E141EFB445121EB60EF54 /* Sources */,
+				93DDDE634507684D6D66DD21 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		93DDDE634507684D6D66DD21 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				21672D85DB53F655CEAF956B /* TVDemo.app */,
+				55A9AAE7EC19664D377C6354 /* VisionDemo.app */,
+				EF5C6B57F8C62737050DA958 /* WatchDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F2C5CC964F89DE3FE52071CE /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				A5A2BE1D0CB30655ECACAF37 /* apple */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		853D214B5D0C270322048A77 /* VisionDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 382366B69E50F96E28AA8A9E /* Build configuration list for PBXNativeTarget "VisionDemo" */;
+			buildPhases = (
+				EA0ED631D0096B67FD3753AB /* Sources */,
+				77D51A6CAA2FCD5FA910103E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VisionDemo;
+			packageProductDependencies = (
+				9F314E19F03E6F9D3B35E965 /* Porthole */,
+			);
+			productName = VisionDemo;
+			productReference = 55A9AAE7EC19664D377C6354 /* VisionDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BA1583F923B0EE012818C340 /* WatchDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 646CC8FE993542B1AF0F111A /* Build configuration list for PBXNativeTarget "WatchDemo" */;
+			buildPhases = (
+				B0913185CD828F3D4BE5EC3F /* Sources */,
+				2539CE536589D4E8E933FED8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchDemo;
+			packageProductDependencies = (
+				CD1BA2FBEBA45A4B948B617E /* Porthole */,
+			);
+			productName = WatchDemo;
+			productReference = EF5C6B57F8C62737050DA958 /* WatchDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FC28B3BAB3E9B7CB2377BAB0 /* TVDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E52C51E64BA5C73388204A1 /* Build configuration list for PBXNativeTarget "TVDemo" */;
+			buildPhases = (
+				38CD61ECFFADDC9D890342D5 /* Sources */,
+				3A4B618945BCF4A94D798925 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TVDemo;
+			packageProductDependencies = (
+				C3CA7D845DCBEAB0FC8DBE9D /* Porthole */,
+			);
+			productName = TVDemo;
+			productReference = 21672D85DB53F655CEAF956B /* TVDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B4202E95E03F4EF164D79158 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					853D214B5D0C270322048A77 = {
+						ProvisioningStyle = Manual;
+					};
+					BA1583F923B0EE012818C340 = {
+						ProvisioningStyle = Manual;
+					};
+					FC28B3BAB3E9B7CB2377BAB0 = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = F87747B7EC4292E52A68F5B3 /* Build configuration list for PBXProject "PlatformsDemo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6FC95C543FFC0EEAEAB62EDE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				21AA1DA5C81243F005D1B979 /* XCLocalSwiftPackageReference "../../apple" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FC28B3BAB3E9B7CB2377BAB0 /* TVDemo */,
+				853D214B5D0C270322048A77 /* VisionDemo */,
+				BA1583F923B0EE012818C340 /* WatchDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		38CD61ECFFADDC9D890342D5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6470051960D421491DE19E53 /* App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0913185CD828F3D4BE5EC3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				225A65464BA6CD1BDB68E455 /* App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EA0ED631D0096B67FD3753AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				285B792A30290A1AA9E7D598 /* App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0F972A05765062810485AE0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Watch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.WatchDemo;
+				PRODUCT_NAME = WatchDemo;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		3F37CDF4AFAB6DEB64ECBDC2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				INFOPLIST_FILE = TV/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.TVDemo;
+				PRODUCT_NAME = TVDemo;
+				SDKROOT = appletvos;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Debug;
+		};
+		484A1530D9F564EA92857120 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Vision/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.VisionDemo;
+				PRODUCT_NAME = VisionDemo;
+				SDKROOT = xros;
+				TARGETED_DEVICE_FAMILY = 7;
+			};
+			name = Debug;
+		};
+		53044550DCFBC0A1A6BCDFAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Watch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.WatchDemo;
+				PRODUCT_NAME = WatchDemo;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
+		};
+		6E58B04F206013ACA5851E12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
+		B26195EA15A6AB03630BD2E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		B3A2EB9E123DDF6A7D53B6DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Vision/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.VisionDemo;
+				PRODUCT_NAME = VisionDemo;
+				SDKROOT = xros;
+				TARGETED_DEVICE_FAMILY = 7;
+			};
+			name = Release;
+		};
+		B411B9EA6DCA6454F0F85942 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				INFOPLIST_FILE = TV/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.portholemcp.TVDemo;
+				PRODUCT_NAME = TVDemo;
+				SDKROOT = appletvos;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		382366B69E50F96E28AA8A9E /* Build configuration list for PBXNativeTarget "VisionDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				484A1530D9F564EA92857120 /* Debug */,
+				B3A2EB9E123DDF6A7D53B6DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5E52C51E64BA5C73388204A1 /* Build configuration list for PBXNativeTarget "TVDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F37CDF4AFAB6DEB64ECBDC2 /* Debug */,
+				B411B9EA6DCA6454F0F85942 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		646CC8FE993542B1AF0F111A /* Build configuration list for PBXNativeTarget "WatchDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F972A05765062810485AE0D /* Debug */,
+				53044550DCFBC0A1A6BCDFAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F87747B7EC4292E52A68F5B3 /* Build configuration list for PBXProject "PlatformsDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B26195EA15A6AB03630BD2E5 /* Debug */,
+				6E58B04F206013ACA5851E12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		21AA1DA5C81243F005D1B979 /* XCLocalSwiftPackageReference "../../apple" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../apple;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9F314E19F03E6F9D3B35E965 /* Porthole */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Porthole;
+		};
+		C3CA7D845DCBEAB0FC8DBE9D /* Porthole */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Porthole;
+		};
+		CD1BA2FBEBA45A4B948B617E /* Porthole */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Porthole;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = B4202E95E03F4EF164D79158 /* Project object */;
+}

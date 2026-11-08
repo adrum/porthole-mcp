@@ -1,0 +1,70 @@
+name: PlatformsDemo
+options:
+  bundleIdPrefix: dev.portholemcp
+  deploymentTarget:
+    tvOS: "16.0"
+    visionOS: "1.0"
+    watchOS: "9.0"
+packages:
+  Porthole:
+    path: ../../apple
+settings:
+  base:
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  TVDemo:
+    type: application
+    platform: tvOS
+    sources: [Sources]
+    dependencies:
+      - package: Porthole
+        product: Porthole
+    info:
+      path: TV/Info.plist
+      properties:
+        CFBundleDisplayName: TV Demo
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.portholemcp.TVDemo
+        PRODUCT_NAME: TVDemo
+        TARGETED_DEVICE_FAMILY: "3"
+  VisionDemo:
+    type: application
+    platform: visionOS
+    sources: [Sources]
+    dependencies:
+      - package: Porthole
+        product: Porthole
+    info:
+      path: Vision/Info.plist
+      properties:
+        CFBundleDisplayName: Vision Demo
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.portholemcp.VisionDemo
+        PRODUCT_NAME: VisionDemo
+        TARGETED_DEVICE_FAMILY: "7"
+  WatchDemo:
+    type: application
+    platform: watchOS
+    sources: [Sources]
+    dependencies:
+      - package: Porthole
+        product: Porthole
+    info:
+      path: Watch/Info.plist
+      properties:
+        CFBundleDisplayName: Watch Demo
+        WKApplication: true
+        WKWatchOnly: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.portholemcp.WatchDemo
+        PRODUCT_NAME: WatchDemo
+        TARGETED_DEVICE_FAMILY: "4"
