@@ -7,8 +7,12 @@ cd "$(dirname "$0")/.."
 out=.build/inject
 mkdir -p "$out/macos"
 
-swift build -c debug --product PortholeInject
-cp .build/debug/libPortholeInject.dylib "$out/macos/libPortholeInject.dylib"
+# Universal, so attach and inject work on Intel Macs as well as Apple silicon.
+arches="--arch arm64 --arch x86_64"
+# shellcheck disable=SC2086 # two flags
+swift build -c debug --product PortholeInject $arches
+# shellcheck disable=SC2086
+cp "$(swift build -c debug $arches --show-bin-path)/libPortholeInject.dylib" "$out/macos/libPortholeInject.dylib"
 codesign -f -s - "$out/macos/libPortholeInject.dylib"
 
 # One injectable build per Simulator platform.
