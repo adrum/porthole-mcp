@@ -128,14 +128,18 @@ final class MacPlatform: Platform {
         }
     }
 
-    private func resolveWindow(_ id: String?) throws -> NSWindow {
+    /// The window a request is for. `restore` brings a minimized window back
+    /// first, which drawing and input need. Reading the tree doesn't: a
+    /// minimized window keeps its views and their values, so inspect and
+    /// wait_for leave it in the Dock.
+    private func resolveWindow(_ id: String?, restore: Bool = true) throws -> NSWindow {
         let all = drivableWindows()
         if let id {
             guard let w = all.first(where: { windowId($0) == id }) else {
                 let ids = all.map { "\(windowId($0)) \"\($0.title)\"" }.joined(separator: ", ")
                 throw HarnessError.notFound("no window \"\(id)\"; windows: \(ids.isEmpty ? "none" : ids)")
             }
-            restoreIfMinimized(w)
+            if restore { restoreIfMinimized(w) }
             return w
         }
         if let key = NSApp?.keyWindow, key.isVisible, key.contentView != nil { return key }
@@ -144,7 +148,7 @@ final class MacPlatform: Platform {
         guard let first = all.first else {
             throw HarnessError.notFound("the app has no open windows")
         }
-        restoreIfMinimized(first)
+        if restore { restoreIfMinimized(first) }
         return first.attachedSheet ?? first
     }
 
@@ -175,7 +179,7 @@ final class MacPlatform: Platform {
 
     func tree(window: String?, a11y: Bool) throws -> Tree {
         settleAccessibility()
-        let w = try resolveWindow(window)
+        let w = try resolveWindow(window, restore: false)
         let tree = build(w, a11y: a11y)
         if a11y {
             measureContrast(tree.root, pixels: render(w, scale: 2).flatMap { PixelBuffer($0, scale: 2) })

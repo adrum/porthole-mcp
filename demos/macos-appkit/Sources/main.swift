@@ -7,7 +7,7 @@ import Porthole
 /// checkbox, a slider, a table in a scroll view, a sheet and a second window.
 final class FormController: NSObject, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
     let window = NSWindow(contentRect: NSRect(x: 200, y: 200, width: 420, height: 560),
-                          styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
     let email = NSTextField()
     let password = NSSecureTextField()
     let subscribe = NSButton(checkboxWithTitle: "Subscribe", target: nil, action: nil)
@@ -174,6 +174,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // hidden app.
         Porthole.registerHook("minimize") { [form] in form.window.miniaturize(nil) }
         Porthole.registerHook("hide") { NSApp.hide(nil) }
+        // Prints whether the window is minimized, for the tests to read back
+        // through the logs tool.
+        Porthole.registerHook("report") { [form] in print("minimized: \(form.window.isMiniaturized)") }
         #endif
         let menu = NSMenu()
         let appItem = NSMenuItem()
