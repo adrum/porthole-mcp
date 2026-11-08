@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Expo Demo",
+    "slug": "expo-demo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "dev.portholemcp.ExpoDemo",
+      "supportsTablet": false
+    },
+    "plugins": ["porthole-mcp"]
+  }
+}

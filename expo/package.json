@@ -1,0 +1,25 @@
+{
+  "name": "porthole-mcp",
+  "version": "0.1.0",
+  "description": "Expo config plugin that adds the porthole-mcp harness to iOS apps as a local Swift package and starts it in Debug builds",
+  "main": "app.plugin.js",
+  "license": "MIT",
+  "author": "Austin Drummond",
+  "files": [
+    "app.plugin.js",
+    "plugin/",
+    "native/"
+  ],
+  "keywords": ["expo", "config-plugin", "mcp", "testing", "automation"],
+  "scripts": {
+    "sync-native": "node scripts/sync-native.js",
+    "prepack": "node scripts/sync-native.js",
+    "test": "node --test test/*.test.js"
+  },
+  "peerDependencies": {
+    "expo": ">=51"
+  },
+  "devDependencies": {
+    "xcode": "^3.0.1"
+  }
+}

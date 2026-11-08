@@ -1,0 +1,38 @@
+name: IOSDemo
+options:
+  bundleIdPrefix: dev.portholemcp
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  Porthole:
+    path: ../../apple
+targets:
+  IOSDemo:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    dependencies:
+      - package: Porthole
+        product: Porthole
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: iOS Demo
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.portholemcp.IOSDemo
+        PRODUCT_NAME: IOSDemo
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        SWIFT_VERSION: "5.0"

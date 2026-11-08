@@ -1,0 +1,28 @@
+name: SwiftUIDemo
+options:
+  bundleIdPrefix: dev.portholemcp
+  deploymentTarget:
+    macOS: "13.0"
+packages:
+  Porthole:
+    path: ../../apple
+targets:
+  SwiftUIDemo:
+    type: application
+    platform: macOS
+    sources: [Sources]
+    dependencies:
+      - package: Porthole
+        product: Porthole
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.portholemcp.SwiftUIDemo
+        PRODUCT_NAME: SwiftUIDemo
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: SwiftUI Demo
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: NO
+        SWIFT_VERSION: "5.0"

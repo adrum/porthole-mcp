@@ -1,0 +1,21 @@
+{
+  "name": "expo-demo",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "prebuild": "expo prebuild --platform ios --no-install",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "porthole-mcp": "file:../../expo",
+    "expo": "~58.0.23",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  }
+}

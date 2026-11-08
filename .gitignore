@@ -1,0 +1,11 @@
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+node_modules/
+expo/native/
+demos/expo/ios/
+demos/expo/android/
+demos/expo/.expo/
+.DS_Store
