@@ -1,6 +1,6 @@
 {
   "name": "porthole-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Expo config plugin that adds the Porthole harness to iOS apps, so coding agents can inspect, drive and audit them over MCP",
   "main": "app.plugin.js",
   "license": "MIT",
