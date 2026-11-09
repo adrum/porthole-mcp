@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -28,7 +29,7 @@ class ComposeActivity : ComponentActivity() {
                 var count by remember { mutableIntStateOf(0) }
                 var name by remember { mutableStateOf("") }
                 var dark by remember { mutableStateOf(false) }
-                Column(Modifier.padding(24.dp)) {
+                Column(Modifier.safeDrawingPadding().padding(24.dp)) {
                     Text("Count: $count", Modifier.testTag("count"))
                     Button(onClick = { count++ }, Modifier.testTag("add")) { Text("Add") }
                     TextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, modifier = Modifier.testTag("name"))

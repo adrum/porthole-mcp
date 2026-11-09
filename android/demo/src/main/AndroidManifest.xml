@@ -12,6 +12,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ComposeActivity" android:exported="false" />
+        <!-- Compose screens draw their own bars, edge to edge. -->
+        <activity
+            android:name=".ComposeActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
 </manifest>
