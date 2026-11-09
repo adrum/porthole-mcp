@@ -133,8 +133,9 @@ window "AppKit Demo" #w2850
 ```
 
 Apps work in the background: the harness never needs the app to be
-frontmost. On macOS its windows must be visible, not hidden or minimized; in
-the Simulator, the app must be in the foreground on the simulated device.
+frontmost. On macOS, `inspect` and `wait_for` read a minimized window as it
+is, and screenshots and actions unhide the app and restore the window first;
+in the Simulator, the app must be in the foreground on the simulated device.
 
 ## Selectors
 
@@ -205,9 +206,6 @@ The demo projects are generated with XcodeGen from each demo's
 
 ## Known limitations
 
-- macOS screenshots are drawn by the app with `cacheDisplay`, which leaves
-  out vibrancy and system materials: a source-list sidebar comes out as a
-  blank area. `inspect` still shows what's there.
 - iOS screenshots use `drawHierarchy`, which can misplace iOS 26+ glass
   effects (a back button drawn out of place) and catches transitions in
   progress.
@@ -215,12 +213,12 @@ The demo projects are generated with XcodeGen from each demo's
   SwiftUI keeps the element object.
 - On iOS, keys go through the text-input path: modifier combinations beyond
   cmd+a/c/x/v/z aren't supported.
-- tvOS, visionOS, watchOS and CarPlay support is experimental: typechecked
-  against each SDK but not yet run end to end. On tvOS there are no touches
-  (presses use each element's own action) and arrow-key focus movement isn't
-  supported; on visionOS, presses use touch synthesis, which is unverified
-  there; watchOS supports inspect, screenshot, press and scroll only; CarPlay
-  templates can't be screenshotted, and their frames are nominal.
+- tvOS, visionOS and watchOS are tested end to end on their Simulators. On
+  tvOS there are no touches (presses use each element's own action) and
+  arrow-key focus movement isn't supported; watchOS supports inspect,
+  screenshot, press and scroll only.
+- CarPlay support is experimental: typechecked but not yet run end to end.
+  CarPlay templates can't be screenshotted, and their frames are nominal.
 
 ## License
 
