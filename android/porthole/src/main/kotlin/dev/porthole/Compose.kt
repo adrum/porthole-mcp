@@ -67,15 +67,17 @@ internal object Compose {
         val role = roleOf(node)
         val tag = c.getOrNull(SemanticsProperties.TestTag)
         val control = role in controls
+        // children builds new node objects on every read: read it once.
+        val kids = node.children
         // A button's label is the Text inside it: name the button with it,
         // and don't list that text again as a child of its own.
-        val absorbed = if (control) node.children.filter { roleOf(it) !in controls && !hasControl(it) } else emptyList()
+        val absorbed = if (control) kids.filter { roleOf(it) !in controls && !hasControl(it) } else emptyList()
         val name = ownName(node)
             ?: absorbed.flatMap { mutableListOf<String>().also { out -> texts(it, out) } }.joinToString(" ").takeIf { it.isNotEmpty() }
-        val keep = role != "group" || tag != null || name != null && node.children.isEmpty() ||
+        val keep = role != "group" || tag != null || name != null && kids.isEmpty() ||
             c.contains(SemanticsActions.OnClick)
         val here = if (keep) {
-            val shownRole = if (role == "group" && name != null && node.children.isEmpty()) "text" else role
+            val shownRole = if (role == "group" && name != null && kids.isEmpty()) "text" else role
             Node(
                 // Compose's semantics id lasts as long as the element does,
                 // so an id from one inspect still works in the next.
@@ -94,8 +96,9 @@ internal object Compose {
                 parent.children += it
             }
         } else parent
-        for (child in node.children) {
-            if (child in absorbed) continue
+        val skip = absorbed.mapTo(HashSet()) { it.id }
+        for (child in kids) {
+            if (child.id in skip) continue
             add(child, here, owner, dx, dy, density, a11y, hidden)
         }
     }
