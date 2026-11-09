@@ -49,7 +49,7 @@ internal object Requests {
 
     private fun tree(params: JSONObject): JSONObject {
         val w = window(params)
-        return JSONObject().put("window", w.id).put("root", Tree.build(w).toJson())
+        return JSONObject().put("window", w.id).put("root", Tree.build(w, params.optBoolean("a11y")).toJson())
     }
 
     private fun screenshot(params: JSONObject): JSONObject {

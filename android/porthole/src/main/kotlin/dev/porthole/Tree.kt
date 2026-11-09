@@ -40,12 +40,16 @@ internal class Node(
 ) {
     val children = mutableListOf<Node>()
 
+    /** Accessibility facts, only when the tree was asked for with a11y. */
+    var a11y: JSONObject? = null
+
     fun toJson(): JSONObject {
         val o = JSONObject().put("id", id).put("role", role)
         if (!name.isNullOrEmpty()) o.put("name", name)
         if (value != null) o.put("value", value)
         if (states.isNotEmpty()) o.put("states", JSONObject(states as Map<*, *>))
         o.put("frame", JSONObject().put("x", x.toDouble()).put("y", y.toDouble()).put("w", w.toDouble()).put("h", h.toDouble()))
+        a11y?.let { o.put("a11y", it) }
         if (children.isNotEmpty()) o.put("children", JSONArray(children.map { it.toJson() }))
         return o
     }
@@ -64,20 +68,21 @@ internal class Node(
 
 /** Builds a window's tree from its views, with Compose content inside them. */
 internal object Tree {
-    fun build(window: AppWindow): Node {
+    fun build(window: AppWindow, a11y: Boolean = false): Node {
         val root = window.root
         val density = root.resources.displayMetrics.density
         val origin = IntArray(2).also { root.getLocationInWindow(it) }
         val node = Node(window.id, "window", window.title, null, emptyMap(), 0f, 0f, root.width / density, root.height / density, Target.OfView(root))
-        if (root is ViewGroup) for (i in 0 until root.childCount) addView(root.getChildAt(i), node, origin, density, false)
+        if (root is ViewGroup) for (i in 0 until root.childCount) addView(root.getChildAt(i), node, origin, density, false, a11y)
         uniqueIds(node)
+        if (a11y) Accessibility.measureContrast(node, Accessibility.render(root))
         return node
     }
 
-    private fun addView(view: View, parent: Node, origin: IntArray, density: Float, inList: Boolean) {
+    private fun addView(view: View, parent: Node, origin: IntArray, density: Float, inList: Boolean, a11y: Boolean) {
         if (!isVisible(view)) return
         if (Compose.isComposeView(view)) {
-            Compose.addTree(view, parent, origin, density)
+            Compose.addTree(view, parent, origin, density, a11y)
             return
         }
         val loc = IntArray(2).also { view.getLocationInWindow(it) }
@@ -90,11 +95,14 @@ internal object Tree {
         val keep = role != "group" && role != "other" || id != null || !view.contentDescription.isNullOrEmpty() || view.isClickable
         val node = if (keep) {
             Node(id ?: synthesized(view), role, name, valueOf(view), statesOf(view), x, y, view.width / density, view.height / density, Target.OfView(view))
-                .also { parent.children += it }
+                .also {
+                    if (a11y) it.a11y = Accessibility.ofView(view, role, density)
+                    parent.children += it
+                }
         } else parent
         if (view is ViewGroup && role != "textfield") {
             val list = role == "list"
-            for (i in 0 until view.childCount) addView(view.getChildAt(i), node, origin, density, list)
+            for (i in 0 until view.childCount) addView(view.getChildAt(i), node, origin, density, list, a11y)
         }
     }
 
