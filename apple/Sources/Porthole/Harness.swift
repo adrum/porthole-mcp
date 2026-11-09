@@ -119,6 +119,13 @@ final class Harness {
     func handle(_ method: String, _ params: [String: Any]) throws -> [String: Any] {
         let p = platform
         let window = params["window"] as? String
+        // Reading leaves a minimized window in the Dock; drawing and input
+        // need it back on screen.
+        switch method {
+        case "windows", "tree": p.readyWindows(window: window, restore: false)
+        case "screenshot", "act": p.readyWindows(window: window, restore: true)
+        default: break
+        }
         switch method {
         case "windows":
             return ["windows": onMain { p.windows() }]

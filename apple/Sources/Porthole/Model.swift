@@ -179,6 +179,15 @@ protocol Platform: AnyObject {
     /// A cheap hash of what's on screen, for noticing changes (main thread).
     /// Nil when the platform can't compute one.
     func changeSignature() -> Int?
+    /// Called off the main thread before a request that needs a window, to
+    /// get one on screen first (unhide the app; with `restore`, bring the
+    /// window back from the Dock). It waits between visits to the main
+    /// thread, so AppKit can actually show the window meanwhile.
+    func readyWindows(window: String?, restore: Bool)
+}
+
+extension Platform {
+    func readyWindows(window: String?, restore: Bool) {}
 }
 
 extension Dictionary where Key == String, Value == Any {

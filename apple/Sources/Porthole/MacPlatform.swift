@@ -79,35 +79,40 @@ final class MacPlatform: Platform {
     /// of its windows count as visible while it's hidden.
     private func drivableWindows() -> [NSWindow] {
         guard let app = NSApp else { return [] }
-        if app.isHidden {
-            app.unhideWithoutActivation()
-        }
-        func reachable() -> [NSWindow] {
-            let visible = visibleWindows()
-            let minimized = app.windows.filter { $0.isMiniaturized && $0.contentView != nil && !visible.contains($0) }
-            return visible + minimized
-        }
-        // A window on its way into the Dock, or out of a hidden app, is
-        // neither visible nor minimized until the animation ends. Give it
-        // time before deciding the app has no windows (up to 3 seconds: on a
-        // slow machine the Dock animation takes a while).
-        var windows = reachable()
-        let deadline = Date().addingTimeInterval(3)
-        while windows.isEmpty && Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-            windows = reachable()
-        }
-        return windows
+        let visible = visibleWindows()
+        let minimized = app.windows.filter { $0.isMiniaturized && $0.contentView != nil && !visible.contains($0) }
+        return visible + minimized
     }
 
-    /// A minimized window can't be drawn or take input: restore it, and wait
-    /// out the Dock animation.
+    /// A minimized window can't be drawn or take input: ask for it back.
+    /// readyWindows has already waited for it when it could.
     private func restoreIfMinimized(_ w: NSWindow) {
-        guard w.isMiniaturized else { return }
-        w.deminiaturize(nil)
-        let deadline = Date().addingTimeInterval(1.5)
-        while (w.isMiniaturized || !w.isVisible) && Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        if w.isMiniaturized { w.deminiaturize(nil) }
+    }
+
+    /// Unhide the app, and with `restore` bring the target window back from
+    /// the Dock, then wait (up to 3 s, off the main thread) until a window is
+    /// there. The waiting can't happen inside a main-thread call: AppKit only
+    /// shows the window between those calls, so waiting inside one would
+    /// wait for nothing.
+    func readyWindows(window: String?, restore: Bool) {
+        func target() -> NSWindow? {
+            let all = drivableWindows()
+            if let window { return all.first { windowId($0) == window } }
+            return all.first { !$0.isMiniaturized } ?? all.first
+        }
+        onMain {
+            if NSApp?.isHidden == true { NSApp?.unhideWithoutActivation() }
+            if restore, let w = target(), w.isMiniaturized { w.deminiaturize(nil) }
+        }
+        let deadline = Date().addingTimeInterval(3)
+        while Date() < deadline {
+            let ready = onMain { () -> Bool in
+                guard let w = target() else { return false }
+                return restore ? (!w.isMiniaturized && w.isVisible) : true
+            }
+            if ready { return }
+            Thread.sleep(forTimeInterval: 0.05)
         }
     }
 
