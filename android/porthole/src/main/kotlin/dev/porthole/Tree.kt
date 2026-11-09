@@ -43,12 +43,16 @@ internal class Node(
     /** Accessibility facts, only when the tree was asked for with a11y. */
     var a11y: JSONObject? = null
 
+    /** A press at the center would land on something else on top. */
+    var covered = false
+
     fun toJson(): JSONObject {
         val o = JSONObject().put("id", id).put("role", role)
         if (!name.isNullOrEmpty()) o.put("name", name)
         if (value != null) o.put("value", value)
         if (states.isNotEmpty()) o.put("states", JSONObject(states as Map<*, *>))
         o.put("frame", JSONObject().put("x", x.toDouble()).put("y", y.toDouble()).put("w", w.toDouble()).put("h", h.toDouble()))
+        if (covered) o.put("covered", true)
         a11y?.let { o.put("a11y", it) }
         if (children.isNotEmpty()) o.put("children", JSONArray(children.map { it.toJson() }))
         return o
@@ -75,6 +79,7 @@ internal object Tree {
         val node = Node(window.id, "window", window.title, null, emptyMap(), 0f, 0f, root.width / density, root.height / density, Target.OfView(root))
         if (root is ViewGroup) for (i in 0 until root.childCount) addView(root.getChildAt(i), node, origin, density, false, a11y)
         uniqueIds(node)
+        markCovered(node, root, origin, density)
         if (a11y) Accessibility.measureContrast(node, Accessibility.render(root))
         return node
     }
@@ -104,6 +109,51 @@ internal object Tree {
             val list = role == "list"
             for (i in 0 until view.childCount) addView(view.getChildAt(i), node, origin, density, list, a11y)
         }
+    }
+
+    /**
+     * Covered: a touch at the node's center would land on a view outside the
+     * node's own view, its descendants and its ancestors (an action bar
+     * drawn over content, an overlay).
+     */
+    private fun markCovered(tree: Node, root: View, origin: IntArray, density: Float) {
+        tree.walk { n ->
+            if (n === tree) return@walk
+            val view = when (val t = n.target) {
+                is Target.OfView -> t.view
+                is Target.OfCompose -> t.owner
+                null -> null
+            } ?: return@walk
+            val cx = (n.x + n.w / 2).coerceIn(0f, tree.w - 0.5f) * density + origin[0]
+            val cy = (n.y + n.h / 2).coerceIn(0f, tree.h - 0.5f) * density + origin[1]
+            val hit = hitTest(root, cx, cy) ?: return@walk
+            if (hit === view || isDescendant(hit, view) || isDescendant(view, hit)) return@walk
+            n.covered = true
+        }
+    }
+
+    /** The view on top at a point in window pixels that would take a touch or draws there. */
+    private fun hitTest(v: View, x: Float, y: Float): View? {
+        if (v.visibility != View.VISIBLE || v.alpha < 0.01f) return null
+        val loc = IntArray(2).also { v.getLocationInWindow(it) }
+        if (x < loc[0] || y < loc[1] || x >= loc[0] + v.width || y >= loc[1] + v.height) return null
+        if (v is ViewGroup) {
+            // Topmost first: higher z, then later in drawing order.
+            val order = (0 until v.childCount).sortedWith(
+                compareByDescending<Int> { v.getChildAt(it).z }.thenByDescending { it },
+            )
+            for (i in order) hitTest(v.getChildAt(i), x, y)?.let { return it }
+        }
+        return if (v.isClickable || !v.willNotDraw()) v else null
+    }
+
+    private fun isDescendant(v: View, of: View): Boolean {
+        var p = v.parent
+        while (p is View) {
+            if (p === of) return true
+            p = p.parent
+        }
+        return false
     }
 
     private fun isVisible(view: View): Boolean {

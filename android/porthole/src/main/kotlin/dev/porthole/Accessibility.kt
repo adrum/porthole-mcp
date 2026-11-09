@@ -84,7 +84,8 @@ internal object Accessibility {
     fun measureContrast(root: Node, pixels: Pixels?) {
         pixels ?: return
         root.walk { n ->
-            if (n.role !in textBearingRoles || n.name == null && n.value == null) return@walk
+            // Pixels at a covered node's center belong to whatever covers it.
+            if (n.role !in textBearingRoles || n.name == null && n.value == null || n.covered) return@walk
             val c = pixels.contrast(n.x, n.y, n.w, n.h) ?: return@walk
             (n.a11y ?: JSONObject().also { n.a11y = it }).put("contrast", c)
         }
