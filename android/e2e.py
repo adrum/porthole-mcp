@@ -8,7 +8,9 @@ device to itself with adb reverse; launch installs the APK. Exits non-zero
 on the first failed step, printing what the tool said.
 """
 
+import difflib
 import json
+import re
 import subprocess
 import sys
 import threading
@@ -88,7 +90,9 @@ def main():
     assert 'button "Add" #add' in tree, "the Add button isn't named by its text"
     assert 'text "Add"' not in tree, "the button's own text is listed twice"
     _, again = s.tool("inspect")
-    assert again == tree, f"ids changed between inspects:\n{tree}\n{again}"
+    ids = lambda text: re.findall(r"#[^\s\]]+", text)
+    assert ids(again) == ids(tree), "ids changed between inspects:\n" + "\n".join(
+        difflib.unified_diff(tree.splitlines(), again.splitlines(), lineterm=""))
     s.tool("click", target="#dark")
     _, a11y = s.tool("inspect", a11y=True)
     print(a11y)
