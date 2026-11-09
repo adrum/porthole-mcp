@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import queue
 
 
@@ -69,8 +70,26 @@ def main():
     s.tool("click", target="#subscribe")
     s.tool("click", target="#save")
     s.tool("wait_for", target='~"Saved ada@example.com (subscribed)"')
-    result, _ = s.tool("screenshot")
+    result, caption = s.tool("screenshot")
     assert result["content"][0]["type"] == "image", "screenshot isn't an image"
+    # The real screen by default, from adb, and the app's drawing on request.
+    assert "screen, as the user sees it" in caption, caption
+    _, caption = s.tool("screenshot", target="#save")
+    assert "screen, as the user sees it" in caption, caption
+    _, caption = s.tool("screenshot", source="app")
+    assert "drawn by the app" in caption, caption
+    # In the background the screen shows the launcher, so the app's drawing
+    # is used instead, and the caption says so.
+    subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_HOME"], check=True)
+    time.sleep(2)
+    result = s.request("tools/call", {"name": "screenshot", "arguments": {}})["result"]
+    caption = " ".join(c.get("text", "") for c in result.get("content", []))
+    # A stopped activity may have no window left to draw, which is an error;
+    # what must not happen is a capture of the launcher.
+    assert "as the user sees it" not in caption, caption
+    subprocess.run(["adb", "shell", "monkey", "-p", "dev.portholemcp.AndroidDemo", "-c",
+                    "android.intent.category.LAUNCHER", "1"], check=True, capture_output=True)
+    s.tool("wait_for", target="#save")
     _, logs = s.tool("logs", grep="save tapped")
     assert "save tapped: ada@example.com" in logs, f"the app's log line is missing:\n{logs}"
     s.tool("run_hook", name="reset")
