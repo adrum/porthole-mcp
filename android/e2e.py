@@ -41,7 +41,7 @@ class Server:
             if reply.get("id") == mine:
                 return reply
 
-    def tool(self, name, **args):
+    def tool(self, name, /, **args):
         print(f"→ {name} {json.dumps(args)}", flush=True)
         reply = self.request("tools/call", {"name": name, "arguments": args})
         result = reply.get("result", {})
