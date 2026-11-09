@@ -159,6 +159,14 @@ when the screen can't be captured. On a physical Android phone the default
 is the app's drawing, since the screen can show notifications and other
 apps; pass `source: "screen"` to capture it anyway.
 
+You decide what agents may use in the Porthole app, under Settings ›
+Screenshots: Default, App drawing or Device, per platform and per app (an
+app's choice overrides its platform's). App drawing gives agents the app's
+drawing even when they ask for the screen. Device always captures the screen
+and never falls back: when it can't, the agent gets an error saying why. The
+choices are saved in `~/Library/Application Support/porthole-mcp/screenshots.json`
+and apply to the next screenshot.
+
 What each picture can miss:
 
 | Platform | The screen | The app's drawing |
