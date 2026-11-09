@@ -116,8 +116,11 @@ internal object Requests {
             is Target.OfView -> {
                 val v = t.view
                 // A control's own click first: that's what a tap does.
+                // performClick's result only says whether an OnClickListener
+                // ran; a CheckBox toggles either way, so never click twice.
                 if (v.isClickable || v is CompoundButton) {
-                    if (v.performClick()) return "clicked ${v.javaClass.simpleName}"
+                    v.performClick()
+                    return "clicked ${v.javaClass.simpleName}"
                 }
                 if (v.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null)) return "pressed ${node.role} via accessibility"
                 // A list row: its list handles the click.
