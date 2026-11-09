@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Porthole starts itself: this provider runs at app launch, so an app adds
+     the library (as a debugImplementation dependency) and writes no code. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <provider
+            android:name="dev.porthole.PortholeInitializer"
+            android:authorities="${applicationId}.porthole"
+            android:exported="false" />
+    </application>
+</manifest>
