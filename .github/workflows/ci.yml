@@ -72,3 +72,34 @@ jobs:
         with:
           name: android-demo-debug
           path: android/demo/build/outputs/apk/debug/demo-debug.apk
+
+  android-e2e:
+    name: Android end to end
+    needs: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-demo-debug
+          path: apk
+      - name: Get the porthole-mcp server for Linux
+        # Built by the Porthole app's pipeline from its main branch.
+        run: |
+          curl --fail --silent --show-error --location -o porthole-mcp \
+            https://assets.austindrummond.com/apps/porthole/ci/porthole-mcp-x86_64-linux
+          chmod +x porthole-mcp
+          ./porthole-mcp --version
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Drive the demo on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: python3 android/e2e.py ./porthole-mcp apk/demo-debug.apk
