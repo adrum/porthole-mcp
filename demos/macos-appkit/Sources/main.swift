@@ -174,6 +174,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // hidden app.
         Porthole.registerHook("minimize") { [form] in form.window.miniaturize(nil) }
         Porthole.registerHook("hide") { NSApp.hide(nil) }
+        Porthole.registerHook("visibility") { [form] in
+            print("hidden: \(NSApp.isHidden) visible: \(form.window.isVisible)")
+        }
         Porthole.registerHook("restore") { [form] in
             form.window.deminiaturize(nil)
             form.window.orderFront(nil)
