@@ -2,9 +2,10 @@
 
 Let a coding agent see and use the app you're building. Porthole puts a
 small Debug-only harness inside your app. The harness reports the app's own
-UI tree, renders its own screenshots and takes input through the app's real
-input paths, so agents like Claude Code, Codex and Cursor can inspect, tap,
-type and audit it over MCP. No Screen Recording or Accessibility permission
+UI tree and takes input through the app's real input paths, so agents like
+Claude Code, Codex and Cursor can inspect, tap, type and audit it over MCP.
+Screenshots show the real screen on Simulators and Android devices, and are
+drawn by the app on macOS. No Screen Recording or Accessibility permission
 is involved.
 
 This repository holds the harness and its protocol:
@@ -111,7 +112,7 @@ validation. System and App Store apps can't be attached to.
 | `launch {path, args?, env?, simulator?, window?, inject?}` | Start a macOS `.app` (in the background), a plain executable, or an iOS, tvOS, watchOS or visionOS `.app` on a matching Simulator. Waits until it answers, then makes it active. |
 | `attach {pid?, app?}` | Load the harness into a running app with lldb. |
 | `inspect {app?, window?, format?, a11y?}` | The UI tree: `outline` (default, one line per element) or `json`. |
-| `screenshot {app?, window?, target?}` | A PNG of the window or one element, rendered in-process. Pixel coordinates are window points. |
+| `screenshot {app?, window?, target?, source?}` | A PNG of the screen or one element: the real screen on Simulators and Android, the app's own drawing on macOS or with `source: "app"`. See [Screenshots](#screenshots). |
 | `click {target}` / `click {x, y}` | Press an element (its primary action) or a point. |
 | `fill {target, text}` | Replace a field's text through the real input path, so delegates, `onChange`, `onChangeText` and SwiftUI bindings fire. |
 | `press_key {key, modifiers?, target?}` | Enter, Tab, Escape, Backspace, Delete, Space, arrows, Home, End, PageUp, PageDown, or one character; `modifiers` of `cmd`, `shift`, `alt`, `ctrl`. |
@@ -136,6 +137,38 @@ Apps work in the background: the harness never needs the app to be
 frontmost. On macOS, `inspect` and `wait_for` read a minimized window as it
 is, and screenshots and actions unhide the app and restore the window first;
 in the Simulator, the app must be in the foreground on the simulated device.
+
+## Screenshots
+
+`screenshot` returns one of two pictures, and its caption says which:
+
+- **The screen**, as the user sees it, captured by the Simulator
+  (`simctl io screenshot`) or Android (`adb screencap`). No permission is
+  needed. This is the default on Simulators and Android emulators.
+- **The app's drawing**: the app renders its own window in-process. It works
+  while the app is covered or in the background, and shows only the app's
+  pixels. This is what macOS and Rune apps always use, and what you get
+  anywhere with `source: "app"`.
+
+Both are scaled so one pixel is one point, so pixel coordinates match
+`click {x, y}`; the caption says when the window is offset on the screen.
+
+The server falls back to the app's drawing, and says why in the caption,
+when the app isn't in front (a screen capture would show something else) or
+when the screen can't be captured. On a physical Android phone the default
+is the app's drawing, since the screen can show notifications and other
+apps; pass `source: "screen"` to capture it anyway.
+
+What each picture can miss:
+
+| Platform | The screen | The app's drawing |
+| --- | --- | --- |
+| macOS | Not available: it would need Screen Recording permission. | Other windows on top, menus and the cursor aren't shown. Video or GPU-drawn content can come out blank. Vibrancy is included. |
+| iOS Simulator | Everything on screen, the keyboard and system alerts included. | The keyboard, system alerts and status bar are separate windows and aren't shown. Transitions get caught mid-animation, and iOS 26 glass effects can be drawn out of place. |
+| tvOS, watchOS Simulators | Everything on screen; watchOS corners are filled black. | Only the app's own window. |
+| visionOS Simulator | The whole view, surroundings included. Element frames can't be placed on it, so a screenshot cropped to one element is the app's drawing. | Only the app's window, without depth or the surroundings. |
+| CarPlay | The Simulator's CarPlay display. | Not available: templates are drawn by the system. |
+| Android | Everything on screen, the keyboard, dialogs and system bars included. | Video, maps and camera views can come out blank. The keyboard and system bars aren't shown, and a dialog or popup is its own window. |
 
 ## Selectors
 
@@ -206,9 +239,6 @@ The demo projects are generated with XcodeGen from each demo's
 
 ## Known limitations
 
-- iOS screenshots use `drawHierarchy`, which can misplace iOS 26+ glass
-  effects (a back button drawn out of place) and catches transitions in
-  progress.
 - SwiftUI elements that have no identifier get ids that last only as long as
   SwiftUI keeps the element object.
 - On iOS, keys go through the text-input path: modifier combinations beyond
@@ -218,7 +248,8 @@ The demo projects are generated with XcodeGen from each demo's
   arrow-key focus movement isn't supported; watchOS supports inspect,
   screenshot, press and scroll only.
 - CarPlay support is experimental: typechecked but not yet run end to end.
-  CarPlay templates can't be screenshotted, and their frames are nominal.
+  CarPlay screenshots come from the Simulator's external display, and
+  template frames are nominal.
 
 ## License
 
