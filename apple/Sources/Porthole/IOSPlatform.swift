@@ -90,6 +90,7 @@ final class IOSPlatform: Platform {
                 "title": w.windowScene?.title ?? w.rootViewController?.title ?? "",
                 "key": w.isKeyWindow,
                 "frame": ["x": w.frame.minX, "y": w.frame.minY, "w": w.frame.width, "h": w.frame.height],
+                "foreground": w.windowScene.map { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive } ?? true,
             ]
         }
         #if os(iOS) && canImport(CarPlay)

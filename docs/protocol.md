@@ -275,6 +275,11 @@ zero-size and fully clipped nodes are left out, along with their subtrees.
 {"id": "w1", "title": "Demo", "key": true, "frame": {"x": 0, "y": 0, "w": 800, "h": 600}}
 ```
 
+`foreground` (bool, optional) is `false` when the window's app is in the
+background on a device with one app in front at a time (iOS, tvOS, visionOS,
+Android). The server then screenshots the app's own drawing rather than the
+screen, which would show something else. Absent means in front.
+
 ## Requests in detail
 
 ### `windows`

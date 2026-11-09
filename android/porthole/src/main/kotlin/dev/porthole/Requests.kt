@@ -37,7 +37,8 @@ internal object Requests {
             val density = w.root.resources.displayMetrics.density
             val loc = IntArray(2).also { w.root.getLocationOnScreen(it) }
             list.put(
-                JSONObject().put("id", w.id).put("title", w.title).put("key", w.key).put(
+                JSONObject().put("id", w.id).put("title", w.title).put("key", w.key)
+                    .put("foreground", Windows.inForeground()).put(
                     "frame",
                     JSONObject().put("x", loc[0] / density).put("y", loc[1] / density)
                         .put("w", w.root.width / density).put("h", w.root.height / density),

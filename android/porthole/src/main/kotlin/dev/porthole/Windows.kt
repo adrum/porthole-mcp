@@ -49,6 +49,9 @@ internal object Windows {
 
     fun install(context: android.content.Context) = install(context as? Application)
 
+    /** Whether one of the app's activities is resumed: the app is in front. */
+    fun inForeground(): Boolean = activities.any { it.get() != null }
+
     /** Visible windows, front to back. */
     fun all(): List<AppWindow> {
         val windows = mutableListOf<AppWindow>()
