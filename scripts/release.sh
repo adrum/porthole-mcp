@@ -29,7 +29,7 @@ if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
 fi
 
 # The same checks CI runs, so a release doesn't fail after the tag is pushed.
-(cd apple && swift test)
+swift test
 (cd expo && npm ci && npm test)
 
 current=$(node -p 'require("./expo/package.json").version')

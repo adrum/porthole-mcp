@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test the harness
-        working-directory: apple
+        # From the root manifest: the one adding the repository by URL uses.
         run: swift test
 
   expo:
