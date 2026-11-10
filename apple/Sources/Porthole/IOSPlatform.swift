@@ -79,6 +79,11 @@ final class IOSPlatform: Platform {
             .sorted { $0.windowLevel > $1.windowLevel }
     }
 
+    /// Whether the window's scene is in the foreground, on screen.
+    private func isForeground(_ w: UIWindow) -> Bool {
+        w.windowScene.map { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive } ?? true
+    }
+
     private func windowId(_ w: UIWindow) -> String {
         Identifiers.shared.id(for: w, prefix: "w")
     }
@@ -90,7 +95,7 @@ final class IOSPlatform: Platform {
                 "title": w.windowScene?.title ?? w.rootViewController?.title ?? "",
                 "key": w.isKeyWindow,
                 "frame": ["x": w.frame.minX, "y": w.frame.minY, "w": w.frame.width, "h": w.frame.height],
-                "foreground": w.windowScene.map { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive } ?? true,
+                "foreground": isForeground(w),
             ]
         }
         #if os(iOS) && canImport(CarPlay)
@@ -545,7 +550,17 @@ final class IOSPlatform: Platform {
             ctx.fill(bounds)
             background.setFill()
             ctx.fill(bounds)
-            w.drawHierarchy(in: w.bounds, afterScreenUpdates: true)
+            // drawHierarchy has the system's render server draw the window
+            // now. For a window whose scene isn't in the foreground the
+            // render server isn't drawing it, and asking it to (seen on a
+            // visionOS Simulator) takes down the Simulator's shell and the
+            // app with it. Draw the layers in-process then instead: no
+            // render server, at the cost of some system effects.
+            if isForeground(w) {
+                w.drawHierarchy(in: w.bounds, afterScreenUpdates: true)
+            } else {
+                w.layer.render(in: ctx.cgContext)
+            }
         }
     }
 
