@@ -1,4 +1,6 @@
 // swift-tools-version:5.9
+// For local path references (the demos use this). Adding the repository by
+// URL uses the Package.swift at the repository root; keep the two in step.
 import PackageDescription
 
 let package = Package(
