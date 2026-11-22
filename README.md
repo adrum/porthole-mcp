@@ -158,16 +158,17 @@ Both are scaled so one pixel is one point, so pixel coordinates match
 macOS window capture starts at the window's top left, so its title bar
 comes before the content unless the content extends under it.
 
-For images to publish, macOS takes a few more options:
+For images to publish, macOS and Rune apps take a few more options:
 
 - `scale`: pixels per point, up to 3. `2` gives a Retina image. It also
   applies to the app's drawing.
 - `shadow: true` keeps the window's shadow on a transparent background. By
   default the window comes alone, with transparent rounded corners.
 - `appearance`: `light` or `dark` switches the app before the shot, and
-  `system` follows the system again. It stays until changed.
+  `system` follows the system again (Rune draws dark by default). It stays
+  until changed.
 - `size: {width, height}` resizes the window to that frame size in points
-  first, so shots repeat. It stays that way too.
+  first, so shots repeat; for Rune it's the viewport. It stays that way too.
 
 `screenshot {appearance: "dark", size: {width: 1200, height: 800}, scale: 2}`
 gives a 2400 × 1600 PNG of the window in dark mode, without its shadow.
