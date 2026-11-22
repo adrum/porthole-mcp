@@ -1,5 +1,6 @@
 #if DEBUG && os(macOS)
 import AppKit
+import ScreenCaptureKit
 
 /// macOS: the tree comes from NSAccessibility (read in-process through
 /// selectors, so SwiftUI's private element classes work too), merged with
@@ -490,12 +491,165 @@ final class MacPlatform: Platform {
         }
     }
 
+    // MARK: window capture
+
+    var extraCapabilities: [String] {
+        if #available(macOS 14.4, *) { return ["windowCapture", "appearance", "resize"] }
+        return ["appearance", "resize"]
+    }
+
+    /// The window as the window server composites it: title bar, toolbar
+    /// and real materials, which the in-process drawing can't reproduce.
+    /// ScreenCaptureKit lets a process capture its own windows without
+    /// Screen Recording permission, and a desktop-independent window filter
+    /// leaves out whatever covers the window.
+    func captureWindow(window: String?, node: String?, scale: CGFloat, shadow: Bool) throws -> Data {
+        guard #available(macOS 14.4, *) else {
+            throw HarnessError.unsupported("capturing the window needs macOS 14.4 or later")
+        }
+        let (number, size, crop) = try onMain { () throws -> (Int, CGSize, CGRect?) in
+            let w = try resolveWindow(window)
+            guard w.isVisible, !w.isMiniaturized else {
+                throw HarnessError.failed("window \(windowId(w)) isn't on screen")
+            }
+            var crop: CGRect?
+            if let node {
+                settleAccessibility()
+                let tree = build(w)
+                let f = try tree.node(node).frame.intersection(tree.root.frame)
+                guard f.isUsable else { throw HarnessError.failed("element \(node) has no visible area") }
+                // Node frames are in content-view points; the capture is in
+                // window-frame points from the top left.
+                let content = w.contentView!
+                let inWindow = content.convert(content.bounds, to: nil)
+                crop = f.offsetBy(dx: inWindow.minX, dy: w.frame.height - inWindow.maxY)
+            }
+            // Get pending drawing to the window server before it's captured.
+            w.displayIfNeeded()
+            CATransaction.flush()
+            return (w.windowNumber, w.frame.size, crop)
+        }
+        let image = try Self.blocking(timeout: 10) {
+            try await Self.capture(windowNumber: number, size: size, crop: crop, scale: scale, shadow: shadow && crop == nil)
+        }
+        guard let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else {
+            throw HarnessError.failed("PNG encoding failed")
+        }
+        return png
+    }
+
+    @available(macOS 14.4, *)
+    private static func capture(windowNumber: Int, size: CGSize, crop: CGRect?, scale: CGFloat, shadow: Bool) async throws -> CGImage {
+        let shareable = try await SCShareableContent.currentProcess
+        guard let target = shareable.windows.first(where: { $0.windowID == CGWindowID(windowNumber) }) else {
+            throw HarnessError.failed("ScreenCaptureKit doesn't list window w\(windowNumber) for this process")
+        }
+        let filter = SCContentFilter(desktopIndependentWindow: target)
+        let config = SCStreamConfiguration()
+        config.showsCursor = false
+        config.captureResolution = .best
+        // Keep the rounded corners (and the shadow, when asked) transparent.
+        config.shouldBeOpaque = false
+        config.ignoreShadowsSingleWindow = !shadow
+        // Without the shadow, the capture's space is the window frame from
+        // its top left.
+        let points: CGSize
+        if let crop {
+            config.sourceRect = crop
+            points = crop.size
+        } else if shadow {
+            points = filter.contentRect.size
+        } else {
+            points = size
+        }
+        config.width = max(1, Int((points.width * scale).rounded()))
+        config.height = max(1, Int((points.height * scale).rounded()))
+        return try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
+    }
+
+    /// Runs async work from a synchronous request thread (never the main
+    /// thread, which the work may need).
+    private static func blocking<T>(timeout: TimeInterval, _ work: @escaping () async throws -> T) throws -> T {
+        guard !Thread.isMainThread else { throw HarnessError.failed("window capture can't wait on the main thread") }
+        let box = ResultBox<T>()
+        let done = DispatchSemaphore(value: 0)
+        Task.detached {
+            do { box.result = .success(try await work()) } catch { box.result = .failure(error) }
+            done.signal()
+        }
+        guard done.wait(timeout: .now() + timeout) == .success, let result = box.result else {
+            throw HarnessError.failed("ScreenCaptureKit didn't answer within \(Int(timeout)) s")
+        }
+        do {
+            return try result.get()
+        } catch let e as HarnessError {
+            throw e
+        } catch {
+            throw HarnessError.failed("ScreenCaptureKit couldn't capture the window: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: appearance and size
+
+    private func setAppearance(_ name: String) throws -> String {
+        guard let app = NSApp else { throw HarnessError.failed("the app has no NSApplication yet") }
+        switch name {
+        case "dark": app.appearance = NSAppearance(named: .darkAqua)
+        case "light": app.appearance = NSAppearance(named: .aqua)
+        case "system": app.appearance = nil
+        default: throw HarnessError.invalid("appearance must be light, dark or system, not \"\(name)\"")
+        }
+        redrawAll()
+        return name == "system" ? "the app follows the system appearance" : "the app is in \(name) mode"
+    }
+
+    /// Sets the window's frame size in points (title bar included), keeping
+    /// its top left corner where it is.
+    private func resize(_ w: NSWindow, width: CGFloat, height: CGFloat) throws -> String {
+        if w.styleMask.contains(.fullScreen) {
+            throw HarnessError.unsupported("window \(windowId(w)) is full screen and can't be resized")
+        }
+        var f = w.frame
+        let top = f.maxY
+        f.size = CGSize(width: width, height: height)
+        f.origin.y = top - height
+        w.setFrame(f, display: true, animate: false)
+        redrawAll()
+        let got = w.frame.size
+        var detail = "window \(windowId(w)) is \(Int(got.width.rounded())) × \(Int(got.height.rounded())) points"
+        if abs(got.width - width) > 0.5 || abs(got.height - height) > 0.5 {
+            detail += " (the window limits its own size)"
+        }
+        return detail
+    }
+
+    /// Let SwiftUI and AppKit lay out and draw after a change, before a
+    /// screenshot is taken.
+    private func redrawAll() {
+        for w in visibleWindows() {
+            w.contentView?.needsLayout = true
+            w.displayIfNeeded()
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+    }
+
     // MARK: actions
 
     func act(_ body: [String: Any]) throws -> String {
         let action = try body.required("action")
         let window = body.string("window")
         switch action {
+        case "appearance":
+            let name = try body.required("appearance")
+            return try onMain { try setAppearance(name) }
+        case "resize":
+            guard let width = body.number("width"), let height = body.number("height"), width >= 1, height >= 1 else {
+                throw HarnessError.invalid("resize needs width and height in points, each at least 1")
+            }
+            return try onMain {
+                let w = try resolveWindow(window)
+                return try resize(w, width: width, height: height)
+            }
         case "press":
             let id = try body.required("node")
             let (detail, posted) = try onMain { () throws -> (String, Bool) in
@@ -553,7 +707,7 @@ final class MacPlatform: Platform {
                 return try scroll(id.map { try tree.node($0) }, dx: dx, dy: dy, in: w)
             }
         default:
-            throw HarnessError.invalid("unknown action \"\(action)\"; use press, pressAt, fill, key, focus or scroll")
+            throw HarnessError.invalid("unknown action \"\(action)\"; use press, pressAt, fill, key, focus, scroll, appearance or resize")
         }
     }
 
@@ -762,6 +916,11 @@ final class MacPlatform: Platform {
         let moved = CGPoint(x: clip.bounds.origin.x - before.x, y: (clip.bounds.origin.y - before.y) * (clip.isFlipped ? 1 : -1))
         return "scrolled \(type(of: sv)) by (\(Int(moved.x)), \(Int(moved.y)))"
     }
+}
+
+/// Carries an async result back to a waiting thread.
+private final class ResultBox<T>: @unchecked Sendable {
+    var result: Result<T, Error>?
 }
 
 extension Dyn {

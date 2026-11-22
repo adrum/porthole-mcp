@@ -184,10 +184,19 @@ protocol Platform: AnyObject {
     /// window back from the Dock). It waits between visits to the main
     /// thread, so AppKit can actually show the window meanwhile.
     func readyWindows(window: String?, restore: Bool)
+    /// Capabilities beyond the common ones, added to hello.
+    var extraCapabilities: [String] { get }
+    /// The window as the window server composites it, frame and materials
+    /// included (`source: "window"`). Called off the main thread.
+    func captureWindow(window: String?, node: String?, scale: CGFloat, shadow: Bool) throws -> Data
 }
 
 extension Platform {
     func readyWindows(window: String?, restore: Bool) {}
+    var extraCapabilities: [String] { [] }
+    func captureWindow(window: String?, node: String?, scale: CGFloat, shadow: Bool) throws -> Data {
+        throw HarnessError.unsupported("\(platformName) has no window capture; leave out source to have the app draw its window")
+    }
 }
 
 extension Dictionary where Key == String, Value == Any {

@@ -113,6 +113,9 @@ connecting at all.
   `uikit`, `swiftui`, `react-native`, `watchkit`, and `carplay` while CarPlay
   is connected).
 - `capabilities` lists the requests and actions this harness implements.
+  On macOS it adds `appearance` and `resize` (the `act` actions), and
+  `windowCapture` on macOS 14.4 or later (`screenshot` with
+  `source: "window"`).
 - The target id is `<app-id>-<pid>`. If that id is already connected (the
   same process reconnecting), the new link replaces the old one.
 - A hub that doesn't speak the harness's `protocol` answers with an
@@ -124,7 +127,7 @@ connecting at all.
 | --- | --- | --- |
 | `windows` | — | `{"windows": [Window]}` |
 | `tree` | `window?`, `a11y?` | `{"window": id, "root": Node}` |
-| `screenshot` | `window?`, `node?`, `scale?` | `{"png": "<base64>"}` |
+| `screenshot` | `window?`, `node?`, `scale?`, `source?`, `shadow?` | `{"png": "<base64>"}` |
 | `act` | `window?`, `action`, action fields | `{"detail": "..."}` |
 | `runHook` | `name` | `{}` |
 
@@ -337,6 +340,16 @@ APIs are never used, so no Screen Recording permission is involved.
 - `node` crops to that node's frame.
 - `scale` is pixels per point, default `1` so pixel coordinates equal window
   points. Values up to `3` are allowed.
+- `source: "window"` (macOS 14.4 or later, with `windowCapture`): instead of
+  drawing in-process, the harness captures its window as the window server
+  composites it, title bar, toolbar and real materials included, through
+  ScreenCaptureKit. A process may capture its own windows without Screen
+  Recording permission. The capture leaves out whatever covers the window.
+  Its pixels start at the window frame's top left, not the content view's,
+  and corners outside the rounded frame are transparent. `node` crops to the
+  node's frame within the window.
+- `shadow` (with `source: "window"`, without `node`): keep the window's
+  shadow, on a transparent background. Default `false`.
 
 ### `act`
 
@@ -352,6 +365,8 @@ APIs are never used, so no Screen Recording permission is involved.
 | `key` | `key`, `modifiers?` | Send a key to the focused element. |
 | `focus` | `node` | Give the node keyboard focus. |
 | `scroll` | `node?`, `dx`, `dy` | Scroll by points. Positive `dy` reveals content below, positive `dx` content to the right. With no node, the largest visible scroll view scrolls. |
+| `appearance` | `appearance` | macOS: `light` or `dark` sets the app's appearance, `system` follows the system's again. It stays until changed. |
+| `resize` | `width`, `height` | macOS: set the window's frame size in points, title bar included, keeping its top left corner in place. The detail says the size it got when the window limits its own size. |
 
 `key` values: `Enter`, `Tab`, `Escape`, `Backspace`, `Delete`, `Space`,
 `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `PageUp`,

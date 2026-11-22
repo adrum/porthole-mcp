@@ -109,7 +109,7 @@ final class Harness {
             "platform": p.platformName,
             "simulator": p.isSimulator,
             "toolkits": p.toolkits(),
-            "capabilities": ["tree", "screenshot", "press", "pressAt", "fill", "key", "focus", "scroll", "hooks"],
+            "capabilities": ["tree", "screenshot", "press", "pressAt", "fill", "key", "focus", "scroll", "hooks"] + p.extraCapabilities,
             "hooks": Hooks.shared.names,
         ]
     }
@@ -142,7 +142,17 @@ final class Harness {
                 scale = CGFloat(n.doubleValue)
             }
             let node = params["node"] as? String
-            let png = try onMain { try p.screenshot(window: window, node: node, scale: scale) }
+            let png: Data
+            switch params["source"] as? String {
+            case nil, "app":
+                png = try onMain { try p.screenshot(window: window, node: node, scale: scale) }
+            case "window":
+                // Off the main thread: the capture waits on the window server.
+                let shadow = params["shadow"] as? Bool ?? false
+                png = try p.captureWindow(window: window, node: node, scale: scale, shadow: shadow)
+            case let other?:
+                throw HarnessError.invalid("source must be app or window, not \"\(other)\"")
+            }
             return ["png": png.base64EncodedString()]
         case "act":
             return ["detail": try p.act(params)]
