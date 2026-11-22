@@ -729,12 +729,18 @@ final class MacPlatform: Platform {
             control.performClick(nil)
             return ("clicked \(type(of: control))", false)
         }
+        // A row or cell is selected; its accessibility press can report
+        // success without selecting anything.
+        if node.role == "row" || node.role == "cell", let row = enclosingRow(node) {
+            return try selectRow(row, from: node, in: w)
+        }
         if node.role != "window", AXElement(o: o).press() {
             return ("pressed \(node.role) via accessibility", false)
         }
-        if node.role == "row" || node.role == "cell" {
-            // Select, then also click: SwiftUI list rows run tap handlers on clicks.
-            _ = AXElement(o: o).setSelected(true)
+        // A row's label or icon: select the row. A synthetic
+        // click on a SwiftUI sidebar row's text doesn't select it.
+        if let row = enclosingRow(node) {
+            return try selectRow(row, from: node, in: w)
         }
         let visible = node.frame.intersection(CGRect(origin: .zero, size: w.contentView!.bounds.size))
         guard visible.isUsable else { throw HarnessError.failed("element is not visible") }
@@ -742,10 +748,72 @@ final class MacPlatform: Platform {
         return ("clicked at the center of \(node.role)", true)
     }
 
-    private func click(_ p: CGPoint, in w: NSWindow) {
-        guard let content = w.contentView else { return }
+    /// The row a node is, or is inside of (within a few levels, and not past
+    /// a list).
+    private func enclosingRow(_ node: Node) -> Node? {
+        var cur: Node? = node
+        for _ in 0..<5 {
+            guard let n = cur, n.role != "list", n.role != "window" else { return nil }
+            if n.role == "row" { return n }
+            cur = n.parent
+        }
+        return nil
+    }
+
+    /// Select a row through accessibility, as VoiceOver does, then through
+    /// its NSTableView when that didn't take; then click it as well, since
+    /// SwiftUI list rows run tap handlers on clicks. Says whether the row
+    /// ended up selected.
+    private func selectRow(_ row: Node, from target: Node, in w: NSWindow) throws -> (String, Bool) {
+        let bounds = CGRect(origin: .zero, size: w.contentView!.bounds.size)
+        var area = target.frame.intersection(row.frame).intersection(bounds)
+        if !area.isUsable { area = row.frame.intersection(bounds) }
+        guard area.isUsable else { throw HarnessError.failed("row is not visible") }
+        let point = area.center
+        let table = tableView(at: point, in: w)
+        let index = table.map { $0.row(at: $0.convert(windowPoint(point, in: w), from: nil)) } ?? -1
+        func selected() -> Bool? {
+            if let table, index >= 0 { return table.selectedRowIndexes.contains(index) }
+            return (row.element as? NSObject).flatMap { AXElement(o: $0).selected }
+        }
+        var how = "via accessibility"
+        if let o = row.element as? NSObject { _ = AXElement(o: o).setSelected(true) }
+        if selected() != true, let table, index >= 0 {
+            table.selectRowIndexes(IndexSet(integer: index), byExtendingSelection: false)
+            table.scrollRowToVisible(index)
+            how = "through its \(type(of: table))"
+        }
+        click(point, in: w)
+        let name = row.name.map { " \"\($0)\"" } ?? ""
+        switch selected() {
+        case true?: return ("selected row\(name) \(how)", true)
+        case false?: return ("clicked row\(name), but it isn't selected; try press_key ArrowDown/ArrowUp on its list", true)
+        case nil: return ("clicked row\(name); its selection can't be read", true)
+        }
+    }
+
+    /// The table view under a point in window content coordinates.
+    private func tableView(at p: CGPoint, in w: NSWindow) -> NSTableView? {
+        guard let content = w.contentView else { return nil }
         let local = NSPoint(x: p.x, y: content.isFlipped ? p.y : content.bounds.height - p.y)
-        let wp = content.convert(local, to: nil)
+        var v = content.hitTest(content.convert(local, to: content.superview))
+        while let cur = v {
+            if let t = cur as? NSTableView { return t }
+            v = cur.superview
+        }
+        return nil
+    }
+
+    /// A point in content coordinates (top-left origin) in the window's base
+    /// coordinates.
+    private func windowPoint(_ p: CGPoint, in w: NSWindow) -> NSPoint {
+        guard let content = w.contentView else { return .zero }
+        let local = NSPoint(x: p.x, y: content.isFlipped ? p.y : content.bounds.height - p.y)
+        return content.convert(local, to: nil)
+    }
+
+    private func click(_ p: CGPoint, in w: NSWindow) {
+        let wp = windowPoint(p, in: w)
         let ts = ProcessInfo.processInfo.systemUptime
         for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
             if let e = NSEvent.mouseEvent(with: type, location: wp, modifierFlags: [], timestamp: ts,

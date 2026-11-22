@@ -204,7 +204,7 @@ A target is space-separated terms that must all match:
 
 | term | matches |
 | --- | --- |
-| `#save` | id: the accessibility identifier (SwiftUI `.accessibilityIdentifier`, React Native `testID`), else a synthesized `_xxx` id. Repeated identifiers become `row`, `row@2`, ...; `#row` matches them all. |
+| `#save` | id: the accessibility identifier (SwiftUI `.accessibilityIdentifier`, React Native `testID`), else a synthesized `_xxx` id (rows and cells by position, like `_xxx.r2`). Repeated identifiers become `row`, `row@2`, ...; `#row` matches them all. |
 | `role:button` | role, case-insensitive: window, group, button, link, text, textfield, securefield, textarea, checkbox, switch, slider, image, list, row, cell, tab, menu, menuitem, scrollview, other |
 | `"Save"` | the exact name |
 | `~"sav"` | name or value contains the text, case-insensitive |

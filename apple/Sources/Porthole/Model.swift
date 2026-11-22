@@ -73,13 +73,25 @@ struct Tree {
     /// `@2`, `@3`, ... in tree order), otherwise a synthesized `_xxx` id that
     /// is stable for the life of the underlying object.
     init(windowId: String, root: Node) {
+        Self.nameRows(root)
         var index: [String: Node] = [:]
         var seen: [String: Int] = [:]
         root.walk { n in
-            if let ident = n.identifier, !ident.isEmpty {
+            if n === root {
+                n.id = windowId
+            } else if let ident = n.identifier, !ident.isEmpty {
                 let count = (seen[ident] ?? 0) + 1
                 seen[ident] = count
                 n.id = count == 1 ? ident : "\(ident)@\(count)"
+            } else if n.role == "row" || n.role == "cell", let parent = n.parent {
+                // Lists hand out new row and cell objects on every query
+                // (SwiftUI's on macOS do), so an id tied to the object would
+                // change between inspect and the click that uses it. Name
+                // them by position in their parent, whose id is assigned
+                // first: `_5.r3` is the third row of list `_5`.
+                let same = parent.children.filter { $0.role == n.role }
+                let i = (same.firstIndex { $0 === n } ?? 0) + 1
+                n.id = "\(parent.id).\(n.role == "row" ? "r" : "c")\(i)"
             } else {
                 n.id = Identifiers.shared.id(for: n.element ?? n)
             }
@@ -87,11 +99,27 @@ struct Tree {
             while index[n.id] != nil { n.id += "'" }
             index[n.id] = n
         }
-        root.id = windowId
-        index[windowId] = root
         self.windowId = windowId
         self.root = root
         self.index = index
+    }
+
+    /// A row or cell without a name of its own takes its first text's, so a
+    /// sidebar row whose label is a text two levels down matches
+    /// `role:row "Cluster"`, and `"Cluster"` finds the row (the outer match).
+    private static func nameRows(_ root: Node) {
+        func firstText(_ n: Node, depth: Int) -> String? {
+            guard depth < 6 else { return nil }
+            for c in n.children {
+                if c.role == "text", let name = c.name, !name.isEmpty { return name }
+                if let found = firstText(c, depth: depth + 1) { return found }
+            }
+            return nil
+        }
+        root.walk { n in
+            guard n.role == "row" || n.role == "cell", n.name?.isEmpty ?? true else { return }
+            n.name = firstText(n, depth: 0)
+        }
     }
 
     func node(_ id: String) throws -> Node {

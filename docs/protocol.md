@@ -248,6 +248,10 @@ Window frames are in screen coordinates (top-left origin).
   Native `testID`). Otherwise a synthesized id, stable for the life of the
   underlying object within the session. Synthesized ids start with `_` (for
   example `_a3f`) so they can't collide with real identifiers that don't.
+  A row or cell without an identifier is named by its position instead,
+  after its parent: `_a3f.r2` is the second row of `_a3f`, and `_a3f.r2.c1`
+  that row's first cell. Lists can hand out new row objects on every query
+  (SwiftUI's on macOS do), and a position survives that.
   When several elements share an identifier (rows built from one template,
   say), the first keeps it and later ones get `@2`, `@3`, ... in tree order
   (`row`, `row@2`, `row@3`), so every id in a tree is unique. Clients match a
@@ -256,7 +260,8 @@ Window frames are in screen coordinates (top-left origin).
   `window`, `group`, `button`, `link`, `text`, `textfield`, `securefield`,
   `textarea`, `checkbox`, `switch`, `slider`, `image`, `list`, `row`, `cell`,
   `tab`, `menu`, `menuitem`, `scrollview`, `other`.
-- `name` (string, optional): the accessible label, or the visible text.
+- `name` (string, optional): the accessible label, or the visible text. A
+  row or cell without one takes the name of its first text.
 - `value` (string, number or bool, optional): a field's text, a slider's
   value, a checkbox's or switch's on state.
 - `states` (object, optional): only non-default flags are present:

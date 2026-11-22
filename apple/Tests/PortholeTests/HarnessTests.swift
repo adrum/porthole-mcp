@@ -237,3 +237,44 @@ final class HubClientTests: XCTestCase {
         XCTAssertEqual(MacPlatform.mapRole("AXWhatever", nil), "other")
     }
 }
+
+final class TreeIdTests: XCTestCase {
+    /// A sidebar like SwiftUI's: list > row > cell > text, where the list
+    /// hands out new row and cell objects on every query.
+    private func sidebar() -> (Node, Node) {
+        let root = Node(role: "window", frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        let list = Node(role: "list", frame: CGRect(x: 0, y: 0, width: 200, height: 300))
+        list.identifier = "sidebar"
+        list.parent = root
+        root.children = [list]
+        for label in ["Overview", "Cluster"] {
+            let row = Node(role: "row", frame: .zero)
+            let cell = Node(role: "cell", frame: .zero)
+            let text = Node(role: "text", frame: .zero)
+            text.name = label
+            row.element = NSObject()
+            cell.element = NSObject()
+            row.parent = list; cell.parent = row; text.parent = cell
+            cell.children = [text]; row.children = [cell]; list.children.append(row)
+        }
+        return (root, list)
+    }
+
+    func testRowsTakeTheirTextsNameAndAPositionalId() throws {
+        let (root, _) = sidebar()
+        let tree = Tree(windowId: "w1", root: root)
+        let row = try tree.node("sidebar.r2")
+        XCTAssertEqual(row.role, "row")
+        XCTAssertEqual(row.name, "Cluster")
+        XCTAssertEqual(try tree.node("sidebar.r2.c1").name, "Cluster")
+        XCTAssertEqual(tree.root.id, "w1")
+    }
+
+    func testRowIdsSurviveNewRowObjects() throws {
+        let first = Tree(windowId: "w1", root: sidebar().0)
+        let second = Tree(windowId: "w1", root: sidebar().0)
+        let ids = { (t: Tree) in t.index.keys.filter { $0.hasPrefix("sidebar.") }.sorted() }
+        XCTAssertEqual(ids(first), ["sidebar.r1", "sidebar.r1.c1", "sidebar.r2", "sidebar.r2.c1"])
+        XCTAssertEqual(ids(first), ids(second))
+    }
+}
