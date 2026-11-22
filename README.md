@@ -4,9 +4,9 @@ Let a coding agent see and use the app you're building. Porthole puts a
 small Debug-only harness inside your app. The harness reports the app's own
 UI tree and takes input through the app's real input paths, so agents like
 Claude Code, Codex and Cursor can inspect, tap, type and audit it over MCP.
-Screenshots show the real screen on Simulators and Android devices, and are
-drawn by the app on macOS. No Screen Recording or Accessibility permission
-is involved.
+Screenshots show the real screen on Simulators and Android devices, and the
+app's own window, as the window server draws it, on macOS. No Screen
+Recording or Accessibility permission is involved.
 
 This repository holds the harness and its protocol:
 
@@ -112,7 +112,7 @@ validation. System and App Store apps can't be attached to.
 | `launch {path, args?, env?, simulator?, window?, inject?}` | Start a macOS `.app` (in the background), a plain executable, or an iOS, tvOS, watchOS or visionOS `.app` on a matching Simulator. Waits until it answers, then makes it active. |
 | `attach {pid?, app?}` | Load the harness into a running app with lldb. |
 | `inspect {app?, window?, format?, a11y?}` | The UI tree: `outline` (default, one line per element) or `json`. |
-| `screenshot {app?, window?, target?, source?}` | A PNG of the screen or one element: the real screen on Simulators and Android, the app's own drawing on macOS or with `source: "app"`. See [Screenshots](#screenshots). |
+| `screenshot {app?, window?, target?, source?, scale?, shadow?, appearance?, size?}` | A PNG of the screen or one element: the real screen on Simulators and Android, the window as the window server draws it on macOS, the app's own drawing with `source: "app"`. See [Screenshots](#screenshots). |
 | `click {target}` / `click {x, y}` | Press an element (its primary action) or a point. |
 | `fill {target, text}` | Replace a field's text through the real input path, so delegates, `onChange`, `onChangeText` and SwiftUI bindings fire. |
 | `press_key {key, modifiers?, target?}` | Enter, Tab, Escape, Backspace, Delete, Space, arrows, Home, End, PageUp, PageDown, or one character; `modifiers` of `cmd`, `shift`, `alt`, `ctrl`. |
@@ -143,15 +143,34 @@ in the Simulator, the app must be in the foreground on the simulated device.
 `screenshot` returns one of two pictures, and its caption says which:
 
 - **The screen**, as the user sees it, captured by the Simulator
-  (`simctl io screenshot`) or Android (`adb screencap`). No permission is
-  needed. This is the default on Simulators and Android emulators.
+  (`simctl io screenshot`) or Android (`adb screencap`). On macOS 14.4 or
+  later it's the app's window as the window server composites it, title
+  bar, toolbar and materials included, which the app captures itself
+  through ScreenCaptureKit. No permission is needed. This is the default on
+  Simulators, Android emulators and macOS.
 - **The app's drawing**: the app renders its own window in-process. It works
   while the app is covered or in the background, and shows only the app's
-  pixels. This is what macOS and Rune apps always use, and what you get
-  anywhere with `source: "app"`.
+  pixels. This is what Rune apps always use, and what you get anywhere with
+  `source: "app"`.
 
 Both are scaled so one pixel is one point, so pixel coordinates match
-`click {x, y}`; the caption says when the window is offset on the screen.
+`click {x, y}`; the caption says when the window is offset on the screen. A
+macOS window capture starts at the window's top left, so its title bar
+comes before the content unless the content extends under it.
+
+For images to publish, macOS takes a few more options:
+
+- `scale`: pixels per point, up to 3. `2` gives a Retina image. It also
+  applies to the app's drawing.
+- `shadow: true` keeps the window's shadow on a transparent background. By
+  default the window comes alone, with transparent rounded corners.
+- `appearance`: `light` or `dark` switches the app before the shot, and
+  `system` follows the system again. It stays until changed.
+- `size: {width, height}` resizes the window to that frame size in points
+  first, so shots repeat. It stays that way too.
+
+`screenshot {appearance: "dark", size: {width: 1200, height: 800}, scale: 2}`
+gives a 2400 × 1600 PNG of the window in dark mode, without its shadow.
 
 The server falls back to the app's drawing, and says why in the caption,
 when the app isn't in front (a screen capture would show something else) or
@@ -171,7 +190,7 @@ What each picture can miss:
 
 | Platform | The screen | The app's drawing |
 | --- | --- | --- |
-| macOS | Not available: it would need Screen Recording permission. | Other windows on top, menus and the cursor aren't shown. Video or GPU-drawn content can come out blank. Vibrancy is included. |
+| macOS | The app's window alone, on macOS 14.4 or later. Other windows on top, sheets, menus, popovers and the cursor aren't shown. | Other windows on top, menus and the cursor aren't shown, nor the title bar and toolbar. Video or GPU-drawn content can come out blank, and SwiftUI sidebars can be missing their text and icons. |
 | iOS Simulator | Everything on screen, the keyboard and system alerts included. | The keyboard, system alerts and status bar are separate windows and aren't shown. Transitions get caught mid-animation, and iOS 26 glass effects can be drawn out of place. |
 | tvOS, watchOS Simulators | Everything on screen; watchOS corners are filled black. | Only the app's own window. |
 | visionOS Simulator | The whole view, surroundings included. Element frames can't be placed on it, so a screenshot cropped to one element is the app's drawing. | Only the app's window, without depth or the surroundings. |
