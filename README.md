@@ -117,7 +117,7 @@ validation. System and App Store apps can't be attached to.
 | `fill {target, text}` | Replace a field's text through the real input path, so delegates, `onChange`, `onChangeText` and SwiftUI bindings fire. |
 | `press_key {key, modifiers?, target?}` | Enter, Tab, Escape, Backspace, Delete, Space, arrows, Home, End, PageUp, PageDown, or one character; `modifiers` of `cmd`, `shift`, `alt`, `ctrl`. |
 | `scroll {target?, direction, amount?}` | Scroll a scroll view (or the largest on screen) up, down, left or right, by points (default 300). |
-| `wait_for {target, state?, timeout_ms?}` | Wait until an element is `visible` (default) or `gone`. |
+| `wait_for {target, within?, state?, timeout_ms?}` | Wait until an element is `visible` (default) or `gone`, optionally only inside the `within` container. |
 | `run_hook {name}` | Run a hook the app registered. |
 | `logs {app?, grep?, stream?, limit?}` | What the app recently printed to stdout and stderr (`print`, `NSLog`), newest last. |
 
