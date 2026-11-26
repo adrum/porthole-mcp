@@ -70,9 +70,29 @@ final class MacPlatform: Platform {
 
     // MARK: windows
 
+    /// The app's windows, front to back. orderedWindows leaves panels out,
+    /// and an NSAlert (a SwiftUI confirmationDialog or alert) is a panel, so
+    /// the app's other windows are added: a running modal window first, then
+    /// panels floating above normal windows, and the rest after.
     private func visibleWindows() -> [NSWindow] {
         guard let app = NSApp else { return [] }
-        return app.orderedWindows.filter { $0.isVisible && $0.contentView != nil && $0.frame.width > 1 && $0.frame.height > 1 }
+        let ordered = app.orderedWindows
+        let extras = app.windows.filter { !ordered.contains($0) && !Self.isSystemChrome($0) }
+        let normal = NSWindow.Level.normal.rawValue
+        let front = extras.filter { $0.level.rawValue > normal }.sorted { $0.level.rawValue > $1.level.rawValue }
+        let back = extras.filter { $0.level.rawValue <= normal }
+        var all = front + ordered + back
+        if let modal = app.modalWindow, let i = all.firstIndex(of: modal) {
+            all.insert(all.remove(at: i), at: 0)
+        }
+        return all.filter { $0.isVisible && $0.contentView != nil && $0.frame.width > 1 && $0.frame.height > 1 }
+    }
+
+    /// Windows AppKit makes for itself that nothing should drive: tooltips,
+    /// menus, full-screen transitions and the menu bar status item.
+    private static func isSystemChrome(_ w: NSWindow) -> Bool {
+        let name = NSStringFromClass(type(of: w))
+        return ["ToolTip", "MenuWindow", "FullScreenTransition", "StatusBarWindow"].contains { name.contains($0) }
     }
 
     /// Windows an agent can reach: the visible ones, then the minimized ones.
@@ -149,6 +169,9 @@ final class MacPlatform: Platform {
             if restore { restoreIfMinimized(w) }
             return w
         }
+        // While a modal alert runs, it's the only window that takes input,
+        // even when the app is in the background and nothing is key.
+        if let modal = NSApp?.modalWindow, modal.isVisible, modal.contentView != nil { return modal }
         if let key = NSApp?.keyWindow, key.isVisible, key.contentView != nil { return key }
         // No key window (the app is in the background): the frontmost one,
         // or a minimized one when nothing else is open.
