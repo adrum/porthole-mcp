@@ -238,9 +238,39 @@ final class MacPlatform: Platform {
         for k in AXElement(o: content).children {
             visit(k, parent: root, clip: root.frame, host: content, depth: 1, ctx: &ctx)
         }
+        // The toolbar sits in the title bar, outside the content view, so
+        // its items can be above it (negative y).
+        for toolbar in toolbarElements(w) where ctx.elements[ObjectIdentifier(toolbar)] == nil {
+            visit(toolbar, parent: root, clip: windowArea(w), host: content, depth: 1, ctx: &ctx)
+        }
         let tree = Tree(windowId: windowId(w), root: root)
         markCovered(tree, ctx: ctx)
         return tree
+    }
+
+    /// The window's toolbar, from the window's accessibility children, or
+    /// failing that its view in the title bar.
+    private func toolbarElements(_ w: NSWindow) -> [NSObject] {
+        guard let toolbar = w.toolbar, toolbar.isVisible else { return [] }
+        let fromAX = AXElement(o: w).children.compactMap { $0 as? NSObject }.filter { AXElement(o: $0).role == "AXToolbar" }
+        if !fromAX.isEmpty { return fromAX }
+        func find(_ v: NSView) -> NSView? {
+            if NSStringFromClass(type(of: v)).contains("NSToolbarView") { return v }
+            for s in v.subviews { if let f = find(s) { return f } }
+            return nil
+        }
+        guard let view = w.contentView?.superview.flatMap(find) else { return [] }
+        return [view as NSObject]
+    }
+
+    /// The whole window, title bar and toolbar included, in content
+    /// coordinates (top-left origin): it starts above the content view
+    /// unless the content fills the window.
+    private func windowArea(_ w: NSWindow) -> CGRect {
+        guard let content = w.contentView else { return .zero }
+        let cs = w.convertToScreen(content.convert(content.bounds, to: nil))
+        let f = w.frame
+        return CGRect(x: f.minX - cs.minX, y: cs.maxY - f.maxY, width: f.width, height: f.height)
     }
 
     private func visit(_ obj: Any, parent: Node, clip: CGRect, host: NSView, depth: Int, ctx: inout Context) {
@@ -539,7 +569,7 @@ final class MacPlatform: Platform {
             if let node {
                 settleAccessibility()
                 let tree = build(w)
-                let f = try tree.node(node).frame.intersection(tree.root.frame)
+                let f = try tree.node(node).frame.intersection(windowArea(w))
                 guard f.isUsable else { throw HarnessError.failed("element \(node) has no visible area") }
                 // Node frames are in content-view points; the capture is in
                 // window-frame points from the top left.
@@ -765,7 +795,8 @@ final class MacPlatform: Platform {
         if let row = enclosingRow(node) {
             return try selectRow(row, from: node, in: w)
         }
-        let visible = node.frame.intersection(CGRect(origin: .zero, size: w.contentView!.bounds.size))
+        // windowArea, not the content bounds: toolbar items are above them.
+        let visible = node.frame.intersection(windowArea(w))
         guard visible.isUsable else { throw HarnessError.failed("element is not visible") }
         click(visible.center, in: w)
         return ("clicked at the center of \(node.role)", true)
